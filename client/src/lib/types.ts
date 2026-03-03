@@ -2,6 +2,7 @@ export interface Agent {
   id: string;
   name: string;
   phase: string;
+  weekRange: string;
   description: string;
   icon: string;
   color: string;

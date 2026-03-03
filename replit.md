@@ -1,15 +1,15 @@
 # Mercury Copilot - AI Delivery Orchestrator
 
 ## Overview
-Mercury Copilot is an AI-powered chatbot that orchestrates Reason Group's Mercury delivery methodology. It uses an intelligent orchestrator to route user queries to 9 specialist agents, each covering a specific phase of the delivery process. Branded with Reason Group's teal identity (HSL 181 62% 45%).
+Mercury Copilot is an AI-powered chatbot for Reason Group's Mercury Method — a 13-week delivery framework purpose-built for government. It uses an intelligent orchestrator to route user queries to 5 phase-specific agents, each covering a phase of the Mercury delivery process. Branded with Reason Group's teal identity.
 
 ## Architecture
 
 ### Backend (Express + TypeScript)
 - **server/index.ts** - Express server entry point
 - **server/routes.ts** - API routes for conversations and messages
-- **server/orchestrator.ts** - AI orchestrator that routes messages to specialist agents using GPT-5-nano for routing and GPT-5.2 for agent responses
-- **server/agents.ts** - 9 Mercury agent definitions with system prompts, keywords, deliverables, and prerequisites
+- **server/orchestrator.ts** - AI orchestrator using GPT-5-nano for routing and GPT-5.2 for agent responses
+- **server/agents.ts** - 5 Mercury phase agents with system prompts, keywords, deliverables, and prerequisites
 - **server/storage.ts** - Database storage layer using Drizzle ORM
 - **server/db.ts** - PostgreSQL database connection via Neon serverless
 
@@ -17,41 +17,54 @@ Mercury Copilot is an AI-powered chatbot that orchestrates Reason Group's Mercur
 - **client/src/App.tsx** - Root app component with routing and providers
 - **client/src/pages/home.tsx** - Main page with sidebar + chat layout
 - **client/src/components/chat-view.tsx** - Chat view with SSE streaming support
-- **client/src/components/chat-sidebar.tsx** - Sidebar with Reason Group logo, conversations, and Mercury phases list
+- **client/src/components/chat-sidebar.tsx** - Sidebar with Reason Group logo, conversations, and Mercury phases
 - **client/src/components/chat-input.tsx** - Chat input with keyboard shortcuts
 - **client/src/components/chat-message.tsx** - Message display with agent indicators
 - **client/src/components/welcome-screen.tsx** - Welcome screen with suggestion cards
 - **client/src/components/markdown-renderer.tsx** - XSS-safe markdown rendering
 - **client/src/components/agent-icon.tsx** - Dynamic agent icon mapping
-- **client/src/components/theme-provider.tsx** - Dark/light theme toggle
-- **client/src/lib/types.ts** - Frontend TypeScript types for Agent, Conversation, Message, SSE events
+- **client/src/components/theme-provider.tsx** - Dark/light theme toggle (defaults to light)
+- **client/src/lib/types.ts** - Frontend TypeScript types
 
 ### Shared
 - **shared/schema.ts** - Drizzle schema for conversations and messages tables
 
-## Mercury Phases (9)
-1. Initiation - SOW, stakeholder matrix, RAID log, kick-off deck
-2. Planning - Project plan, testing/training/deployment strategies, development standards
-3. Discovery & Design - Requirements (Epic > Feature > User Story > AC), MoSCoW, fit-gap, HLD, data migration
-4. Design - Impact assessment, technical design, traceability matrix, sprint planning
-5. Build - As-built docs, showcases, testing plan, unit/SIT test cases, UAT kick-off pack
-6. UAT Planning - UAT training, scenarios (customer-owned), use cases
-7. UAT Execution - Defect management, UAT execution and sign-off
-8. Deployment - Release management, release checklist, TVT, BVT
-9. Hypercare - Daily standups, defect/incident status meetings, post go-live support
+## Mercury Method — 5 Phases, 13 Weeks
+1. **Mobilization** (Week 1) - Mission placemat, success criteria, governance, stakeholder ID, seven guardrails
+2. **Planning** (Week 1) - Team assembly, roles, sandbox environment, data access, customer panel, champion team
+3. **Discovery** (Weeks 2-3) - Customer research, data exploration, prototyping (multiple per day), feedback loops, daily showcases
+4. **Delivery** (Weeks 4-12) - Iterative development, daily playbacks, weekly value showcases, continuous user testing, champion validation
+5. **Approval** (Week 13) - Final showcase, value validation, handover documentation, lessons learned, next steps
+
+## Mercury Core Principles (Manifesto)
+1. High Performance Teams — trans-disciplinary (data, tech, process, customer)
+2. Engage with Purpose — clear north star and mission alignment
+3. Listen Faster Than You Deliver — feedback loops faster than delivery
+4. Learn Rapidly — iterate, progress over perfection
+5. Attack Ambiguity with Gusto — VUCA, don't rush to certainty
+
+## Seven Guardrails
+1. Create a Workzone
+2. Create a Placemat
+3. Create a Sandbox
+4. Create Actionable Project Insights
+5. Create a Customer Panel
+6. Create a Champion Working Team
+7. Create Value Showcases Daily
 
 ## Key Features
 - Intelligent message routing via AI orchestrator
 - Streaming AI responses via SSE
-- Agent prerequisite checking (warns when phases are skipped)
+- Agent prerequisite checking
 - Conversation persistence in PostgreSQL
-- Dark/light theme toggle with dark teal sidebar
+- Dark/light theme toggle (light default, white background)
 - Rich markdown rendering for templates and guidance
 - Reason Group logo in sidebar and welcome screen
 
 ## Branding
-- Primary color: Teal HSL(181, 62%, 45%) - matches Reason Group brand
-- Dark sidebar: HSL(181, 25%, 10-18%)
+- Primary color: Teal HSL(181, 62%, 45%)
+- Light mode: White background, white sidebar, dark text
+- Dark mode: Grey background with darker sidebar
 - Fonts: Inter (sans), JetBrains Mono (mono)
 - Logo: attached_assets/Reason_Group_Logo_Stacked_CMYK_(1)_1772514975025.png
 

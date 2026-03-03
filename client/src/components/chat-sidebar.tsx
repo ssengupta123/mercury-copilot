@@ -142,7 +142,7 @@ export function ChatSidebar({
 
           {showAgents && (
             <div className="space-y-0.5 mt-1">
-              {agents.map((agent, index) => (
+              {agents.map((agent) => (
                 <div
                   key={agent.id}
                   className="flex items-center gap-2 px-2 py-1.5 rounded-md"
@@ -154,7 +154,7 @@ export function ChatSidebar({
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-medium truncate text-sidebar-foreground/90">{agent.name}</p>
                   </div>
-                  <span className="text-[10px] text-sidebar-foreground/40 shrink-0">P{index + 1}</span>
+                  <span className="text-[10px] text-sidebar-foreground/40 shrink-0">{agent.weekRange}</span>
                 </div>
               ))}
             </div>

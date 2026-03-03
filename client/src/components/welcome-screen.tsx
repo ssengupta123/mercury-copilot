@@ -10,34 +10,34 @@ interface WelcomeScreenProps {
 
 const suggestions = [
   {
-    label: "Statement of Work",
-    text: "I need help creating a Statement of Work (SOW) for a new project engagement",
-    agentHint: "initiation",
+    label: "Mission Placemat",
+    text: "Help me create a mission placemat for our Mercury engagement with scope, guardrails, and success criteria",
+    agentHint: "mobilization",
   },
   {
-    label: "Requirements & User Stories",
-    text: "Help me structure requirements into Epics, Features, User Stories with Acceptance Criteria",
-    agentHint: "discovery-design",
-  },
-  {
-    label: "Testing Strategy",
-    text: "I need to create a testing strategy covering unit testing, SIT, and UAT",
+    label: "Team Assembly",
+    text: "I need to assemble a Mercury team — help me determine the right size and roles for our project",
     agentHint: "planning",
   },
   {
-    label: "Change Impact Analysis",
-    text: "Help me create a change management and communication plan for our project",
-    agentHint: "discovery-design",
+    label: "Customer Research",
+    text: "Help me plan customer research and set up a customer panel for our discovery phase",
+    agentHint: "discovery",
   },
   {
-    label: "Sprint Planning",
-    text: "Help me set up sprint planning with proper backlog structure and capacity planning",
-    agentHint: "design",
+    label: "Value Showcase",
+    text: "I need to structure a weekly value showcase to demonstrate progress to stakeholders",
+    agentHint: "delivery",
   },
   {
-    label: "Release & Deployment",
-    text: "I need a release checklist and deployment plan including TVT and BVT",
-    agentHint: "deployment",
+    label: "Sandbox Setup",
+    text: "Help me plan a sandbox environment for rapid prototyping with obfuscated data",
+    agentHint: "planning",
+  },
+  {
+    label: "Final Handover",
+    text: "Help me prepare the final showcase and handover documentation for our Mercury approval phase",
+    agentHint: "approval",
   },
 ];
 
@@ -61,7 +61,7 @@ export function WelcomeScreen({ onSuggestionClick }: WelcomeScreenProps) {
             <p className="text-sm text-primary font-medium mt-1">by Reason Group</p>
           </div>
           <p className="text-muted-foreground text-sm max-w-md mx-auto">
-            Your AI-powered delivery assistant. Ask me about any phase of the Mercury delivery methodology and I'll guide you through templates, best practices, and deliverables.
+            Your AI-powered delivery assistant for the Mercury Method — delivering guaranteed outcomes in 13 weeks. Ask about any phase from Mobilization through Approval.
           </p>
         </div>
 
@@ -94,13 +94,14 @@ export function WelcomeScreen({ onSuggestionClick }: WelcomeScreenProps) {
 
         <div className="text-center">
           <p className="text-xs text-muted-foreground mb-2">
-            9 delivery phases covered
+            5 phases across 13 weeks
           </p>
           <div className="flex items-center justify-center gap-1 flex-wrap">
             {agents.map((agent) => (
               <Badge key={agent.id} variant="secondary" className="text-[10px] gap-1">
                 <AgentIcon icon={agent.icon} className="w-3 h-3" color={agent.color} />
                 {agent.name}
+                <span className="text-muted-foreground ml-0.5">{agent.weekRange}</span>
               </Badge>
             ))}
           </div>

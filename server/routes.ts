@@ -15,6 +15,7 @@ export async function registerRoutes(
       id: a.id,
       name: a.name,
       phase: a.phase,
+      weekRange: a.weekRange,
       description: a.description,
       icon: a.icon,
       color: a.color,
