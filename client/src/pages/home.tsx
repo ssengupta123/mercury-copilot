@@ -6,8 +6,8 @@ import { ChatView } from "@/components/chat-view";
 import {
   SidebarProvider,
   SidebarTrigger,
+  Sidebar,
 } from "@/components/ui/sidebar";
-import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageSquare, Trash2, ChevronDown, X } from "lucide-react";
@@ -64,14 +64,12 @@ export default function Home() {
     <SidebarProvider style={sidebarStyle as React.CSSProperties}>
       <div className="flex h-screen w-full">
         <Sidebar>
-          <SidebarContent className="p-0">
-            <ChatSidebar
-              activeConversationId={activeConversationId}
-              selectedPhase={selectedPhase}
-              onNewConversation={handleNewConversation}
-              onSelectPhase={handleSelectPhase}
-            />
-          </SidebarContent>
+          <ChatSidebar
+            activeConversationId={activeConversationId}
+            selectedPhase={selectedPhase}
+            onNewConversation={handleNewConversation}
+            onSelectPhase={handleSelectPhase}
+          />
         </Sidebar>
 
         <div className="flex flex-col flex-1 min-w-0">

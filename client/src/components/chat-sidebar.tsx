@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AgentIcon } from "@/components/agent-icon";
-
 import { useTheme } from "@/components/theme-provider";
 import logoPath from "@assets/Reason_Group_Logo_CMYK_(1)_1772539075105.png";
 import { Link } from "wouter";
@@ -37,17 +36,18 @@ export function ChatSidebar({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 space-y-2">
+      <div className="h-12 flex items-center px-4 border-b border-sidebar-border shrink-0">
         <img
           src={logoPath}
           alt="Reason Group"
-          className="h-8 object-contain object-left"
+          className="h-6 object-contain object-left"
           data-testid="img-reason-logo"
         />
-        <h1 className="font-semibold text-sm leading-tight" data-testid="text-app-title">Mercury Copilot</h1>
       </div>
 
-      <div className="border-b border-sidebar-border" />
+      <div className="px-4 pt-3 pb-1">
+        <h1 className="font-semibold text-sm leading-tight" data-testid="text-app-title">Mercury Copilot</h1>
+      </div>
 
       <ScrollArea className="flex-1 px-2">
         <div className="py-2">
