@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { routeMessage, generateAgentResponse } from "./orchestrator";
 import { MERCURY_AGENTS, getAgentById } from "./agents";
-import { sendMessageSchema } from "@shared/schema";
+import { sendMessageSchema, insertCopilotBotSchema } from "@shared/schema";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -144,10 +144,24 @@ export async function registerRoutes(
       let fullResponse = "";
 
       try {
-        const stream = generateAgentResponse(routing.agent, content, history, prerequisiteWarning);
-        for await (const chunk of stream) {
-          fullResponse += chunk;
-          res.write(`data: ${JSON.stringify({ type: "content", content: chunk })}\n\n`);
+        const configuredBots = await storage.getCopilotBotsByPhase(routing.agentId);
+        const activeBots = configuredBots.filter(b => b.isActive);
+
+        if (activeBots.length > 0) {
+          const botList = activeBots.map(b => `${b.skillRole}: ${b.name}`).join(", ");
+          const botContext = `\n\nNOTE: This phase has the following Copilot Studio bots configured for specialist skills: ${botList}. When the user needs deep specialist help in one of these areas, mention that a dedicated Copilot bot is available and describe what it can help with. The bot endpoints are managed by the admin.`;
+          const enhancedWarning = (prerequisiteWarning || "") + botContext;
+          const stream = generateAgentResponse(routing.agent, content, history, enhancedWarning);
+          for await (const chunk of stream) {
+            fullResponse += chunk;
+            res.write(`data: ${JSON.stringify({ type: "content", content: chunk })}\n\n`);
+          }
+        } else {
+          const stream = generateAgentResponse(routing.agent, content, history, prerequisiteWarning);
+          for await (const chunk of stream) {
+            fullResponse += chunk;
+            res.write(`data: ${JSON.stringify({ type: "content", content: chunk })}\n\n`);
+          }
         }
       } catch (streamError) {
         console.error("Error during streaming:", streamError);
@@ -173,6 +187,64 @@ export async function registerRoutes(
       } else {
         res.status(500).json({ error: "Failed to process message" });
       }
+    }
+  });
+
+  const sanitizeBot = (bot: any) => {
+    const { botSecret, ...safe } = bot;
+    return { ...safe, hasSecret: !!botSecret };
+  };
+
+  const updateCopilotBotSchema = insertCopilotBotSchema.partial();
+
+  app.get("/api/admin/copilot-bots", async (_req, res) => {
+    try {
+      const bots = await storage.getAllCopilotBots();
+      res.json(bots.map(sanitizeBot));
+    } catch (error) {
+      console.error("Error fetching copilot bots:", error);
+      res.status(500).json({ error: "Failed to fetch copilot bots" });
+    }
+  });
+
+  app.post("/api/admin/copilot-bots", async (req, res) => {
+    try {
+      const parsed = insertCopilotBotSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid bot configuration", details: parsed.error.errors });
+      }
+      const bot = await storage.createCopilotBot(parsed.data);
+      res.status(201).json(sanitizeBot(bot));
+    } catch (error) {
+      console.error("Error creating copilot bot:", error);
+      res.status(500).json({ error: "Failed to create copilot bot" });
+    }
+  });
+
+  app.patch("/api/admin/copilot-bots/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const parsed = updateCopilotBotSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid update data", details: parsed.error.errors });
+      }
+      const bot = await storage.updateCopilotBot(id, parsed.data);
+      if (!bot) return res.status(404).json({ error: "Bot not found" });
+      res.json(sanitizeBot(bot));
+    } catch (error) {
+      console.error("Error updating copilot bot:", error);
+      res.status(500).json({ error: "Failed to update copilot bot" });
+    }
+  });
+
+  app.delete("/api/admin/copilot-bots/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteCopilotBot(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting copilot bot:", error);
+      res.status(500).json({ error: "Failed to delete copilot bot" });
     }
   });
 

@@ -7,11 +7,13 @@ import { Separator } from "@/components/ui/separator";
 import { AgentIcon } from "@/components/agent-icon";
 import { useTheme } from "@/components/theme-provider";
 import logoPath from "@assets/Reason_Group_Logo_Stacked_CMYK_(1)_1772514975025.png";
+import { Link } from "wouter";
 import {
   Plus,
   MessageSquare,
   Trash2,
   Sun,
+  Settings,
   Moon,
   ChevronDown,
   ChevronRight,
@@ -163,7 +165,18 @@ export function ChatSidebar({
       </ScrollArea>
 
       <Separator className="bg-sidebar-border" />
-      <div className="p-3">
+      <div className="p-3 space-y-1">
+        <Link href="/admin">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start gap-2 text-sidebar-foreground/70"
+            data-testid="button-admin-settings"
+          >
+            <Settings className="w-4 h-4" />
+            Admin Settings
+          </Button>
+        </Link>
         <Button
           variant="ghost"
           size="sm"

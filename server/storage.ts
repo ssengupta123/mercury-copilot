@@ -1,6 +1,10 @@
 import { db } from "./db";
-import { conversations, messages, type Conversation, type Message, type InsertConversation, type InsertMessage } from "@shared/schema";
-import { eq, desc, asc } from "drizzle-orm";
+import {
+  conversations, messages, copilotBots,
+  type Conversation, type Message, type InsertConversation, type InsertMessage,
+  type CopilotBot, type InsertCopilotBot
+} from "@shared/schema";
+import { eq, desc, asc, and } from "drizzle-orm";
 
 export interface IStorage {
   getConversation(id: number): Promise<Conversation | undefined>;
@@ -10,6 +14,14 @@ export interface IStorage {
   deleteConversation(id: number): Promise<void>;
   getMessagesByConversation(conversationId: number): Promise<Message[]>;
   createMessage(data: InsertMessage): Promise<Message>;
+
+  getAllCopilotBots(): Promise<CopilotBot[]>;
+  getCopilotBotsByPhase(phaseId: string): Promise<CopilotBot[]>;
+  getCopilotBot(id: number): Promise<CopilotBot | undefined>;
+  createCopilotBot(data: InsertCopilotBot): Promise<CopilotBot>;
+  updateCopilotBot(id: number, data: Partial<InsertCopilotBot>): Promise<CopilotBot | undefined>;
+  deleteCopilotBot(id: number): Promise<void>;
+  getActiveBotForPhaseAndRole(phaseId: string, skillRole: string): Promise<CopilotBot | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -48,6 +60,51 @@ export class DatabaseStorage implements IStorage {
   async createMessage(data: InsertMessage): Promise<Message> {
     const [msg] = await db.insert(messages).values(data).returning();
     return msg;
+  }
+
+  async getAllCopilotBots(): Promise<CopilotBot[]> {
+    return db.select().from(copilotBots).orderBy(asc(copilotBots.phaseId), asc(copilotBots.skillRole));
+  }
+
+  async getCopilotBotsByPhase(phaseId: string): Promise<CopilotBot[]> {
+    return db.select().from(copilotBots).where(eq(copilotBots.phaseId, phaseId)).orderBy(asc(copilotBots.skillRole));
+  }
+
+  async getCopilotBot(id: number): Promise<CopilotBot | undefined> {
+    const [bot] = await db.select().from(copilotBots).where(eq(copilotBots.id, id));
+    return bot;
+  }
+
+  async createCopilotBot(data: InsertCopilotBot): Promise<CopilotBot> {
+    const [bot] = await db.insert(copilotBots).values(data).returning();
+    return bot;
+  }
+
+  async updateCopilotBot(id: number, data: Partial<InsertCopilotBot>): Promise<CopilotBot | undefined> {
+    const [bot] = await db
+      .update(copilotBots)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(copilotBots.id, id))
+      .returning();
+    return bot;
+  }
+
+  async deleteCopilotBot(id: number): Promise<void> {
+    await db.delete(copilotBots).where(eq(copilotBots.id, id));
+  }
+
+  async getActiveBotForPhaseAndRole(phaseId: string, skillRole: string): Promise<CopilotBot | undefined> {
+    const [bot] = await db
+      .select()
+      .from(copilotBots)
+      .where(
+        and(
+          eq(copilotBots.phaseId, phaseId),
+          eq(copilotBots.skillRole, skillRole),
+          eq(copilotBots.isActive, true)
+        )
+      );
+    return bot;
   }
 }
 

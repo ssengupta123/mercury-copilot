@@ -27,7 +27,7 @@ Mercury Copilot is an AI-powered chatbot for Reason Group's Mercury Method — a
 - **client/src/lib/types.ts** - Frontend TypeScript types
 
 ### Shared
-- **shared/schema.ts** - Drizzle schema for conversations and messages tables
+- **shared/schema.ts** - Drizzle schema for conversations, messages, and copilot_bots tables
 
 ## Mercury Method — 5 Phases, 13 Weeks
 1. **Mobilization** (Week 1) - Mission placemat, success criteria, governance, stakeholder ID, seven guardrails
@@ -57,6 +57,9 @@ Mercury Copilot is an AI-powered chatbot for Reason Group's Mercury Method — a
 - Streaming AI responses via SSE
 - Agent prerequisite checking
 - Conversation persistence in PostgreSQL
+- Admin configuration panel (/admin) for registering Microsoft Copilot Studio bots per phase and skill role
+- Copilot bot CRUD via API: GET/POST/PATCH/DELETE /api/admin/copilot-bots
+- Orchestrator awareness of configured bots — informs agents about available specialist bots
 - Dark/light theme toggle (light default, white background)
 - Rich markdown rendering for templates and guidance
 - Reason Group logo in sidebar and welcome screen
@@ -80,3 +83,12 @@ Mercury Copilot is an AI-powered chatbot for Reason Group's Mercury Method — a
 PostgreSQL with tables:
 - `conversations` - id, title, activeAgent, createdAt, updatedAt
 - `messages` - id, conversationId, role, content, agentId, createdAt
+- `copilot_bots` - id, name, phaseId, skillRole, botEndpoint, botSecret, description, isActive, createdAt, updatedAt
+
+## Admin Panel
+- Route: /admin
+- Page: client/src/pages/admin.tsx
+- API: /api/admin/copilot-bots (CRUD)
+- Accessible via "Admin Settings" link in sidebar
+- Manages Microsoft Copilot Studio bot registrations per Mercury phase and skill role
+- Skill roles: Business Analyst, Solution Architect, Data Engineer, Tech Lead, Tester, Business Consultant, Rules Expert, UX Designer, Change Manager, Project Coordinator, Custom

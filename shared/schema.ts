@@ -20,6 +20,19 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+export const copilotBots = pgTable("copilot_bots", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  phaseId: text("phase_id").notNull(),
+  skillRole: text("skill_role").notNull(),
+  botEndpoint: text("bot_endpoint").notNull(),
+  botSecret: text("bot_secret"),
+  description: text("description"),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 export const insertConversationSchema = createInsertSchema(conversations).omit({
   id: true,
   createdAt: true,
@@ -31,10 +44,18 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
   createdAt: true,
 });
 
+export const insertCopilotBotSchema = createInsertSchema(copilotBots).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type Conversation = typeof conversations.$inferSelect;
 export type InsertConversation = z.infer<typeof insertConversationSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type CopilotBot = typeof copilotBots.$inferSelect;
+export type InsertCopilotBot = z.infer<typeof insertCopilotBotSchema>;
 
 export const sendMessageSchema = z.object({
   content: z.string().min(1),
