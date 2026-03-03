@@ -1,0 +1,268 @@
+import type { Express } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { routeMessage, generateAgentResponse } from "./orchestrator";
+import { MERCURY_AGENTS, getAgentById } from "./agents";
+import { sendMessageSchema, insertCopilotBotSchema } from "@shared/schema";
+
+export async function registerRoutes(
+  httpServer: Server,
+  app: Express
+): Promise<Server> {
+
+  app.get("/api/health", async (_req, res) => {
+    try {
+      if (process.env.AZURE_SQL_CONNECTION_STRING) {
+        const { getPool } = await import("./db-mssql");
+        const pool = await getPool();
+        await pool.request().query("SELECT 1");
+      } else {
+        const { pool } = await import("./db");
+        await pool.query("SELECT 1");
+      }
+      res.json({ status: "healthy", timestamp: new Date().toISOString() });
+    } catch (error) {
+      res.status(503).json({ status: "unhealthy", error: "Database connection failed" });
+    }
+  });
+
+  app.get("/api/agents", (_req, res) => {
+    const agents = MERCURY_AGENTS.map(a => ({
+      id: a.id,
+      name: a.name,
+      phase: a.phase,
+      weekRange: a.weekRange,
+      description: a.description,
+      icon: a.icon,
+      color: a.color,
+      prerequisites: a.prerequisites,
+      deliverables: a.deliverables,
+    }));
+    res.json(agents);
+  });
+
+  app.get("/api/conversations", async (_req, res) => {
+    try {
+      const convs = await storage.getAllConversations();
+      res.json(convs);
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+      res.status(500).json({ error: "Failed to fetch conversations" });
+    }
+  });
+
+  app.get("/api/conversations/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const conv = await storage.getConversation(id);
+      if (!conv) return res.status(404).json({ error: "Conversation not found" });
+      const msgs = await storage.getMessagesByConversation(id);
+      res.json({ ...conv, messages: msgs });
+    } catch (error) {
+      console.error("Error fetching conversation:", error);
+      res.status(500).json({ error: "Failed to fetch conversation" });
+    }
+  });
+
+  app.post("/api/conversations", async (req, res) => {
+    try {
+      const conv = await storage.createConversation({
+        title: req.body.title || "New Conversation",
+      });
+      res.status(201).json(conv);
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+      res.status(500).json({ error: "Failed to create conversation" });
+    }
+  });
+
+  app.delete("/api/conversations/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteConversation(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting conversation:", error);
+      res.status(500).json({ error: "Failed to delete conversation" });
+    }
+  });
+
+  app.post("/api/conversations/:id/messages", async (req, res) => {
+    try {
+      const conversationId = parseInt(req.params.id);
+      const parsed = sendMessageSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Message content is required" });
+      }
+      const { content } = parsed.data;
+
+      const conv = await storage.getConversation(conversationId);
+      if (!conv) return res.status(404).json({ error: "Conversation not found" });
+
+      await storage.createMessage({
+        conversationId,
+        role: "user",
+        content,
+        agentId: null,
+      });
+
+      const existingMessages = await storage.getMessagesByConversation(conversationId);
+      const historyForRouting = existingMessages.map(m => ({
+        role: m.role,
+        content: m.content,
+        agentId: m.agentId,
+      }));
+
+      const routing = await routeMessage(content, historyForRouting, conv.activeAgent);
+
+      await storage.updateConversation(conversationId, {
+        activeAgent: routing.agentId,
+      });
+
+      if (existingMessages.length <= 1) {
+        const titleContent = content.length > 50 ? content.substring(0, 50) + "..." : content;
+        await storage.updateConversation(conversationId, {
+          title: titleContent,
+          activeAgent: routing.agentId,
+        });
+      }
+
+      let prerequisiteWarning: string | undefined;
+      const missingPrereqs = routing.agent.prerequisites.filter(prereqId => {
+        const hasDiscussion = existingMessages.some(m => m.agentId === prereqId);
+        return !hasDiscussion;
+      });
+
+      if (missingPrereqs.length > 0) {
+        const prereqNames = missingPrereqs
+          .map(id => getAgentById(id)?.name || id)
+          .join(", ");
+        prerequisiteWarning = `The user may not have completed prerequisite phases: ${prereqNames}. Gently mention this and offer to help with prerequisites if needed, but still answer their question.`;
+      }
+
+      const history = existingMessages.map(m => ({
+        role: m.role,
+        content: m.content,
+      }));
+
+      res.setHeader("Content-Type", "text/event-stream");
+      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Connection", "keep-alive");
+
+      res.write(`data: ${JSON.stringify({
+        type: "routing",
+        agentId: routing.agentId,
+        agentName: routing.agent.name,
+        greeting: routing.greeting,
+        reason: routing.reason,
+      })}\n\n`);
+
+      let fullResponse = "";
+
+      try {
+        const configuredBots = await storage.getCopilotBotsByPhase(routing.agentId);
+        const activeBots = configuredBots.filter(b => b.isActive);
+
+        if (activeBots.length > 0) {
+          const botList = activeBots.map(b => `${b.skillRole}: ${b.name}`).join(", ");
+          const botContext = `\n\nNOTE: This phase has the following Copilot Studio bots configured for specialist skills: ${botList}. When the user needs deep specialist help in one of these areas, mention that a dedicated Copilot bot is available and describe what it can help with. The bot endpoints are managed by the admin.`;
+          const enhancedWarning = (prerequisiteWarning || "") + botContext;
+          const stream = generateAgentResponse(routing.agent, content, history, enhancedWarning);
+          for await (const chunk of stream) {
+            fullResponse += chunk;
+            res.write(`data: ${JSON.stringify({ type: "content", content: chunk })}\n\n`);
+          }
+        } else {
+          const stream = generateAgentResponse(routing.agent, content, history, prerequisiteWarning);
+          for await (const chunk of stream) {
+            fullResponse += chunk;
+            res.write(`data: ${JSON.stringify({ type: "content", content: chunk })}\n\n`);
+          }
+        }
+      } catch (streamError) {
+        console.error("Error during streaming:", streamError);
+        const errorMsg = "I apologize, but I encountered an issue generating a response. Please try again.";
+        fullResponse = errorMsg;
+        res.write(`data: ${JSON.stringify({ type: "content", content: errorMsg })}\n\n`);
+      }
+
+      await storage.createMessage({
+        conversationId,
+        role: "assistant",
+        content: fullResponse,
+        agentId: routing.agentId,
+      });
+
+      res.write(`data: ${JSON.stringify({ type: "done" })}\n\n`);
+      res.end();
+    } catch (error) {
+      console.error("Error sending message:", error);
+      if (res.headersSent) {
+        res.write(`data: ${JSON.stringify({ type: "error", error: "Failed to process message" })}\n\n`);
+        res.end();
+      } else {
+        res.status(500).json({ error: "Failed to process message" });
+      }
+    }
+  });
+
+  const sanitizeBot = (bot: any) => {
+    const { botSecret, ...safe } = bot;
+    return { ...safe, hasSecret: !!botSecret };
+  };
+
+  const updateCopilotBotSchema = insertCopilotBotSchema.partial();
+
+  app.get("/api/admin/copilot-bots", async (_req, res) => {
+    try {
+      const bots = await storage.getAllCopilotBots();
+      res.json(bots.map(sanitizeBot));
+    } catch (error) {
+      console.error("Error fetching copilot bots:", error);
+      res.status(500).json({ error: "Failed to fetch copilot bots" });
+    }
+  });
+
+  app.post("/api/admin/copilot-bots", async (req, res) => {
+    try {
+      const parsed = insertCopilotBotSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid bot configuration", details: parsed.error.errors });
+      }
+      const bot = await storage.createCopilotBot(parsed.data);
+      res.status(201).json(sanitizeBot(bot));
+    } catch (error) {
+      console.error("Error creating copilot bot:", error);
+      res.status(500).json({ error: "Failed to create copilot bot" });
+    }
+  });
+
+  app.patch("/api/admin/copilot-bots/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const parsed = updateCopilotBotSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid update data", details: parsed.error.errors });
+      }
+      const bot = await storage.updateCopilotBot(id, parsed.data);
+      if (!bot) return res.status(404).json({ error: "Bot not found" });
+      res.json(sanitizeBot(bot));
+    } catch (error) {
+      console.error("Error updating copilot bot:", error);
+      res.status(500).json({ error: "Failed to update copilot bot" });
+    }
+  });
+
+  app.delete("/api/admin/copilot-bots/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteCopilotBot(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting copilot bot:", error);
+      res.status(500).json({ error: "Failed to delete copilot bot" });
+    }
+  });
+
+  return httpServer;
+}
