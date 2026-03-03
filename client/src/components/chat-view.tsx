@@ -5,6 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChatMessage } from "@/components/chat-message";
 import { ChatInput } from "@/components/chat-input";
 import { WelcomeScreen } from "@/components/welcome-screen";
+import { PhaseDeliverablesView } from "@/components/phase-deliverables-view";
 import { AgentIcon } from "@/components/agent-icon";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
@@ -12,10 +13,11 @@ import type { Agent, ConversationWithMessages, Message } from "@/lib/types";
 
 interface ChatViewProps {
   conversationId: number | null;
+  selectedPhase?: string | null;
   onConversationCreated: (id: number) => void;
 }
 
-export function ChatView({ conversationId, onConversationCreated }: ChatViewProps) {
+export function ChatView({ conversationId, selectedPhase, onConversationCreated }: ChatViewProps) {
   const [streamingContent, setStreamingContent] = useState("");
   const [streamingAgentId, setStreamingAgentId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -158,6 +160,15 @@ export function ChatView({ conversationId, onConversationCreated }: ChatViewProp
       setStreamingContent("");
     }
   };
+
+  if (!conversationId && selectedPhase) {
+    return (
+      <div className="flex flex-col h-full">
+        <PhaseDeliverablesView phaseId={selectedPhase} onDeliverableClick={handleSend} />
+        <ChatInput onSend={handleSend} isLoading={isStreaming} />
+      </div>
+    );
+  }
 
   if (!conversationId) {
     return (

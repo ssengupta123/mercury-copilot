@@ -6,19 +6,29 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
-import { useTheme } from "@/components/theme-provider";
-import { Button } from "@/components/ui/button";
-import { Sun, Moon, Menu } from "lucide-react";
 
 export default function Home() {
   const [activeConversationId, setActiveConversationId] = useState<number | null>(null);
+  const [selectedPhase, setSelectedPhase] = useState<string | null>(null);
 
   const handleNewConversation = () => {
     setActiveConversationId(null);
+    setSelectedPhase(null);
   };
 
   const handleConversationCreated = (id: number) => {
     setActiveConversationId(id);
+    setSelectedPhase(null);
+  };
+
+  const handleSelectConversation = (id: number) => {
+    setActiveConversationId(id);
+    setSelectedPhase(null);
+  };
+
+  const handleSelectPhase = (phaseId: string | null) => {
+    setSelectedPhase(phaseId);
+    setActiveConversationId(null);
   };
 
   const sidebarStyle = {
@@ -33,8 +43,10 @@ export default function Home() {
           <SidebarContent className="p-0">
             <ChatSidebar
               activeConversationId={activeConversationId}
-              onSelectConversation={setActiveConversationId}
+              selectedPhase={selectedPhase}
+              onSelectConversation={handleSelectConversation}
               onNewConversation={handleNewConversation}
+              onSelectPhase={handleSelectPhase}
             />
           </SidebarContent>
         </Sidebar>
@@ -46,6 +58,7 @@ export default function Home() {
           <main className="flex-1 overflow-hidden">
             <ChatView
               conversationId={activeConversationId}
+              selectedPhase={selectedPhase}
               onConversationCreated={handleConversationCreated}
             />
           </main>

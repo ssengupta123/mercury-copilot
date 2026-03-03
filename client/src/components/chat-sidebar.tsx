@@ -22,14 +22,18 @@ import type { Conversation, Agent } from "@/lib/types";
 
 interface ChatSidebarProps {
   activeConversationId: number | null;
+  selectedPhase: string | null;
   onSelectConversation: (id: number) => void;
   onNewConversation: () => void;
+  onSelectPhase: (phaseId: string | null) => void;
 }
 
 export function ChatSidebar({
   activeConversationId,
+  selectedPhase,
   onSelectConversation,
   onNewConversation,
+  onSelectPhase,
 }: ChatSidebarProps) {
   const { theme, toggleTheme } = useTheme();
   const [showAgents, setShowAgents] = useState(true);
@@ -144,21 +148,28 @@ export function ChatSidebar({
 
           {showAgents && (
             <div className="space-y-0.5 mt-1">
-              {agents.map((agent) => (
-                <div
-                  key={agent.id}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded-md"
-                  data-testid={`agent-info-${agent.id}`}
-                >
-                  <div className="w-5 h-5 rounded flex items-center justify-center shrink-0" style={{ backgroundColor: agent.color + "20" }}>
-                    <AgentIcon icon={agent.icon} className="w-3 h-3" color={agent.color} />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium truncate text-sidebar-foreground/90">{agent.name}</p>
-                  </div>
-                  <span className="text-[10px] text-sidebar-foreground/40 shrink-0">{agent.weekRange}</span>
-                </div>
-              ))}
+              {agents.map((agent) => {
+                const isSelected = selectedPhase === agent.id;
+                return (
+                  <button
+                    key={agent.id}
+                    className={`flex items-center gap-2 px-2 py-1.5 rounded-md w-full text-left transition-colors cursor-pointer ${
+                      isSelected
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "hover:bg-sidebar-accent/50"
+                    }`}
+                    onClick={() => onSelectPhase(isSelected ? null : agent.id)}
+                    data-testid={`phase-button-${agent.id}`}
+                  >
+                    <div className="w-5 h-5 rounded flex items-center justify-center shrink-0" style={{ backgroundColor: agent.color + "20" }}>
+                      <AgentIcon icon={agent.icon} className="w-3 h-3" color={agent.color} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-medium truncate text-sidebar-foreground/90">{agent.name}</p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
