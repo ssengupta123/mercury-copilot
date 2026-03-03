@@ -27,7 +27,7 @@ export function WelcomeScreen({ onSuggestionClick }: WelcomeScreenProps) {
             <p className="text-sm text-primary font-medium mt-1">by Reason Group</p>
           </div>
           <p className="text-muted-foreground text-sm max-w-md mx-auto">
-            Select a Mercury phase from the sidebar to see its deliverables, or type a question directly below.
+            Your AI-powered delivery assistant for the Mercury Method — delivering guaranteed outcomes in 13 weeks. Ask about any phase from Mobilisation through Approval.
           </p>
         </div>
 
