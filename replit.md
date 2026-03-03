@@ -11,7 +11,7 @@ Mercury Copilot is an AI-powered chatbot for Reason Group's Mercury Method — a
 - **server/orchestrator.ts** - AI orchestrator using GPT-5-nano for routing and GPT-5.2 for agent responses
 - **server/agents.ts** - 5 Mercury phase agents with system prompts, keywords, deliverables, and prerequisites
 - **server/storage.ts** - Database storage layer using Drizzle ORM
-- **server/db.ts** - PostgreSQL database connection via Neon serverless
+- **server/db.ts** - PostgreSQL database connection via standard pg driver (compatible with Azure PostgreSQL)
 
 ### Frontend (React + TypeScript)
 - **client/src/App.tsx** - Root app component with routing and providers
@@ -84,6 +84,15 @@ PostgreSQL with tables:
 - `conversations` - id, title, activeAgent, createdAt, updatedAt
 - `messages` - id, conversationId, role, content, agentId, createdAt
 - `copilot_bots` - id, name, phaseId, skillRole, botEndpoint, botSecret, description, isActive, createdAt, updatedAt
+
+## Deployment
+- **Dev environment**: Replit (this project)
+- **Production**: Azure Web App + Azure Database for PostgreSQL
+- **CI/CD**: GitHub Actions (`.github/workflows/azure-deploy.yml`) — auto-deploys on push to `main`
+- **Build**: `npm run build` → `npm start` (frontend Vite + backend esbuild → `dist/index.cjs`)
+- **Health check**: GET `/api/health` — verifies app + database connectivity
+- **Azure config**: Set `DATABASE_SSL=true` for Azure PostgreSQL SSL connections
+- **Deployment guide**: See `AZURE_DEPLOYMENT.md` for full setup instructions
 
 ## Admin Panel
 - Route: /admin

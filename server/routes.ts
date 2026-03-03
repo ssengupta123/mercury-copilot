@@ -10,6 +10,16 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
 
+  app.get("/api/health", async (_req, res) => {
+    try {
+      const { pool } = await import("./db");
+      await pool.query("SELECT 1");
+      res.json({ status: "healthy", timestamp: new Date().toISOString() });
+    } catch (error) {
+      res.status(503).json({ status: "unhealthy", error: "Database connection failed" });
+    }
+  });
+
   app.get("/api/agents", (_req, res) => {
     const agents = MERCURY_AGENTS.map(a => ({
       id: a.id,
