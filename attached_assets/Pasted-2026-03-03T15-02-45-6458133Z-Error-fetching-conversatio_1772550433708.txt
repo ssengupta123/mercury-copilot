@@ -1,0 +1,109 @@
+2026-03-03T15:02:45.6458133Z Error fetching conversations: bD [ConnectionError]: Login failed for user 'CloudSAabcd3fdd'.
+2026-03-03T15:02:45.6458451Z     at /home/site/wwwroot/index.cjs:196:20634
+2026-03-03T15:02:45.6458483Z     at tb.r (/home/site/wwwroot/index.cjs:195:311090)
+2026-03-03T15:02:45.6458506Z     at Object.onceWrapper (node:events:634:26)
+2026-03-03T15:02:45.6458528Z     at tb.emit (node:events:519:28)
+2026-03-03T15:02:45.6458551Z     at tb.emit (/home/site/wwwroot/index.cjs:195:311510)
+2026-03-03T15:02:45.6458573Z     at /home/site/wwwroot/index.cjs:195:311392
+2026-03-03T15:02:45.6458597Z     at process.processTicksAndRejections (node:internal/process/task_queues:85:11) {
+2026-03-03T15:02:45.6458618Z   code: 'ELOGIN',
+2026-03-03T15:02:45.645864Z   originalError: XB [Error]: Login failed for user 'CloudSAabcd3fdd'.
+2026-03-03T15:02:45.6458664Z       at j4.onErrorMessage (/home/site/wwwroot/index.cjs:195:282763)
+2026-03-03T15:02:45.6459046Z       at Readable.<anonymous> (/home/site/wwwroot/index.cjs:195:268922)
+2026-03-03T15:02:45.6459129Z       at Readable.emit (node:events:519:28)
+2026-03-03T15:02:45.6459154Z       at addChunk (node:internal/streams/readable:561:12)
+2026-03-03T15:02:45.6459177Z       at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+2026-03-03T15:02:45.64592Z       at Readable.push (node:internal/streams/readable:393:5)
+2026-03-03T15:02:45.6459224Z       at nextAsync (node:internal/streams/from:194:22)
+2026-03-03T15:02:45.6459248Z       at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+2026-03-03T15:02:45.6459269Z     code: 'ELOGIN'
+2026-03-03T15:02:45.645929Z   }
+2026-03-03T15:02:45.6459309Z }
+2026-03-03T15:02:45.6791581Z Error sending message: bD [ConnectionError]: Login failed for user 'CloudSAabcd3fdd'.
+2026-03-03T15:02:45.6791893Z     at /home/site/wwwroot/index.cjs:196:20634
+2026-03-03T15:02:45.6791922Z     at tb.r (/home/site/wwwroot/index.cjs:195:311090)
+2026-03-03T15:02:45.6791944Z     at Object.onceWrapper (node:events:634:26)
+2026-03-03T15:02:45.6791966Z     at tb.emit (node:events:519:28)
+2026-03-03T15:02:45.679199Z     at tb.emit (/home/site/wwwroot/index.cjs:195:311510)
+2026-03-03T15:02:45.6792012Z     at /home/site/wwwroot/index.cjs:195:311392
+2026-03-03T15:02:45.6792036Z     at process.processTicksAndRejections (node:internal/process/task_queues:85:11) {
+2026-03-03T15:02:45.6792056Z   code: 'ELOGIN',
+2026-03-03T15:02:45.6792079Z   originalError: XB [Error]: Login failed for user 'CloudSAabcd3fdd'.
+2026-03-03T15:02:45.679968Z 3:02:45 PM [express] GET /api/conversations 500 in 2ms :: {"error":"Failed to fetch conversations"}
+2026-03-03T15:02:45.6799983Z 3:02:45 PM [express] POST /api/conversations/undefined/messages 500 in 9ms :: {"error":"Failed to process message"}
+2026-03-03T15:02:45.6800029Z 3:02:45 PM [express] POST /api/conversations/undefined/messages 500 in 1ms :: {"error":"Failed to process message"}
+2026-03-03T15:02:45.6792102Z       at j4.onErrorMessage (/home/site/wwwroot/index.cjs:195:282763)
+2026-03-03T15:02:45.6800165Z       at Readable.<anonymous> (/home/site/wwwroot/index.cjs:195:268922)
+2026-03-03T15:02:45.6800237Z       at Readable.emit (node:events:519:28)
+2026-03-03T15:02:45.680026Z       at addChunk (node:internal/streams/readable:561:12)
+2026-03-03T15:02:45.6800285Z       at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+2026-03-03T15:02:45.6800308Z       at Readable.push (node:internal/streams/readable:393:5)
+2026-03-03T15:02:45.6800331Z       at nextAsync (node:internal/streams/from:194:22)
+2026-03-03T15:02:45.6800356Z       at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+2026-03-03T15:02:45.6800379Z     code: 'ELOGIN'
+2026-03-03T15:02:45.6800399Z   }
+2026-03-03T15:02:45.6800418Z }
+2026-03-03T15:02:45.6800514Z Error sending message: bD [ConnectionError]: Login failed for user 'CloudSAabcd3fdd'.
+2026-03-03T15:02:45.6800564Z     at /home/site/wwwroot/index.cjs:196:20634
+2026-03-03T15:02:45.6800589Z     at tb.r (/home/site/wwwroot/index.cjs:195:311090)
+2026-03-03T15:02:45.6800612Z     at Object.onceWrapper (node:events:634:26)
+2026-03-03T15:02:45.6800633Z     at tb.emit (node:events:519:28)
+2026-03-03T15:02:45.6800657Z     at tb.emit (/home/site/wwwroot/index.cjs:195:311510)
+2026-03-03T15:02:45.6800679Z     at /home/site/wwwroot/index.cjs:195:311392
+2026-03-03T15:02:45.6800704Z     at process.processTicksAndRejections (node:internal/process/task_queues:85:11) {
+2026-03-03T15:02:45.6800724Z   code: 'ELOGIN',
+2026-03-03T15:02:45.6800747Z   originalError: XB [Error]: Login failed for user 'CloudSAabcd3fdd'.
+2026-03-03T15:02:45.680077Z       at j4.onErrorMessage (/home/site/wwwroot/index.cjs:195:282763)
+2026-03-03T15:02:45.6800793Z       at Readable.<anonymous> (/home/site/wwwroot/index.cjs:195:268922)
+2026-03-03T15:02:45.6800838Z       at Readable.emit (node:events:519:28)
+2026-03-03T15:02:45.6800862Z       at addChunk (node:internal/streams/readable:561:12)
+2026-03-03T15:02:45.6800886Z       at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+2026-03-03T15:02:45.680091Z       at Readable.push (node:internal/streams/readable:393:5)
+2026-03-03T15:02:45.6800932Z       at nextAsync (node:internal/streams/from:194:22)
+2026-03-03T15:02:45.6800956Z       at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+2026-03-03T15:02:45.6800983Z     code: 'ELOGIN'
+2026-03-03T15:02:45.6801003Z   }
+2026-03-03T15:02:45.6801022Z }
+2026-03-03T15:02:45.6824154Z Error sending message: bD [ConnectionError]: Login failed for user 'CloudSAabcd3fdd'.
+2026-03-03T15:02:45.6824439Z     at /home/site/wwwroot/index.cjs:196:20634
+2026-03-03T15:02:45.6824513Z     at tb.r (/home/site/wwwroot/index.cjs:195:311090)
+2026-03-03T15:02:45.6824536Z     at Object.onceWrapper (node:events:634:26)
+2026-03-03T15:02:45.6824558Z     at tb.emit (node:events:519:28)
+2026-03-03T15:02:45.6824581Z     at tb.emit (/home/site/wwwroot/index.cjs:195:311510)
+2026-03-03T15:02:45.6824602Z     at /home/site/wwwroot/index.cjs:195:311392
+2026-03-03T15:02:45.6824626Z     at process.processTicksAndRejections (node:internal/process/task_queues:85:11) {
+2026-03-03T15:02:45.6824647Z   code: 'ELOGIN',
+2026-03-03T15:02:45.682467Z   originalError: XB [Error]: Login failed for user 'CloudSAabcd3fdd'.
+2026-03-03T15:02:45.6824693Z       at j4.onErrorMessage (/home/site/wwwroot/index.cjs:195:282763)
+2026-03-03T15:02:45.6824716Z       at Readable.<anonymous> (/home/site/wwwroot/index.cjs:195:268922)
+2026-03-03T15:02:45.6824759Z       at Readable.emit (node:events:519:28)
+2026-03-03T15:02:45.6824782Z       at addChunk (node:internal/streams/readable:561:12)
+2026-03-03T15:02:45.6824806Z       at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+2026-03-03T15:02:45.6824829Z       at Readable.push (node:internal/streams/readable:393:5)
+2026-03-03T15:02:45.6824851Z       at nextAsync (node:internal/streams/from:194:22)
+2026-03-03T15:02:45.6824876Z       at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+2026-03-03T15:02:45.6824896Z     code: 'ELOGIN'
+2026-03-03T15:02:45.6824915Z   }
+2026-03-03T15:02:45.6824934Z }
+2026-03-03T15:02:45.6870009Z 3:02:45 PM [express] POST /api/conversations/undefined/messages 500 in 2ms :: {"error":"Failed to process message"}
+2026-03-03T15:02:45.6900824Z Error sending message: bD [ConnectionError]: Login failed for user 'CloudSAabcd3fdd'.
+2026-03-03T15:02:45.6901122Z     at /home/site/wwwroot/index.cjs:196:20634
+2026-03-03T15:02:45.6901196Z     at tb.r (/home/site/wwwroot/index.cjs:195:311090)
+2026-03-03T15:02:45.6901222Z     at Object.onceWrapper (node:events:634:26)
+2026-03-03T15:02:45.6901244Z     at tb.emit (node:events:519:28)
+2026-03-03T15:02:45.6901266Z     at tb.emit (/home/site/wwwroot/index.cjs:195:311510)
+2026-03-03T15:02:45.6901288Z     at /home/site/wwwroot/index.cjs:195:311392
+2026-03-03T15:02:45.6901312Z     at process.processTicksAndRejections (node:internal/process/task_queues:85:11) {
+2026-03-03T15:02:45.6901333Z   code: 'ELOGIN',
+2026-03-03T15:02:45.6901355Z   originalError: XB [Error]: Login failed for user 'CloudSAabcd3fdd'.
+2026-03-03T15:02:45.6901379Z       at j4.onErrorMessage (/home/site/wwwroot/index.cjs:195:282763)
+2026-03-03T15:02:45.6901402Z       at Readable.<anonymous> (/home/site/wwwroot/index.cjs:195:268922)
+2026-03-03T15:02:45.6901423Z       at Readable.emit (node:events:519:28)
+2026-03-03T15:02:45.690147Z       at addChunk (node:internal/streams/readable:561:12)
+2026-03-03T15:02:45.6901494Z       at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+2026-03-03T15:02:45.6901517Z       at Readable.push (node:internal/streams/readable:393:5)
+2026-03-03T15:02:45.6901539Z       at nextAsync (node:internal/streams/from:194:22)
+2026-03-03T15:02:45.6901563Z       at process.processTicksAndRejections (node:internal/process/task_queues:105:5) {
+2026-03-03T15:02:45.6901584Z     code: 'ELOGIN'
+2026-03-03T15:02:45.6901603Z   }
+2026-03-03T15:02:45.6901622Z }
