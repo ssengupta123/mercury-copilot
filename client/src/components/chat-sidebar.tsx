@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { AgentIcon } from "@/components/agent-icon";
+
 import { useTheme } from "@/components/theme-provider";
 import logoPath from "@assets/Reason_Group_Logo_CMYK_(1)_1772539075105.png";
 import { Link } from "wouter";
@@ -47,7 +47,7 @@ export function ChatSidebar({
         <h1 className="font-semibold text-sm leading-tight" data-testid="text-app-title">Mercury Copilot</h1>
       </div>
 
-      <Separator className="bg-sidebar-border" />
+      <div className="border-b border-sidebar-border" />
 
       <ScrollArea className="flex-1 px-2">
         <div className="py-2">
@@ -95,8 +95,7 @@ export function ChatSidebar({
         </div>
       </ScrollArea>
 
-      <Separator className="bg-sidebar-border" />
-      <div className="p-3 space-y-1">
+      <div className="border-t border-sidebar-border p-3 space-y-1">
         <Link href="/admin">
           <Button
             variant="ghost"
