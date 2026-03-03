@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AgentIcon } from "@/components/agent-icon";
 import { useToast } from "@/hooks/use-toast";
-import logoPath from "@assets/Reason_Group_Logo_CMYK_(1)_1772539075105.png";
+const logoPath = "/images/reason-group-logo-horizontal.png";
 import {
   Plus,
   Trash2,
