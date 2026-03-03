@@ -14,14 +14,14 @@ export interface AgentDefinition {
 
 export const MERCURY_AGENTS: AgentDefinition[] = [
   {
-    id: "mobilization",
-    name: "Mobilization",
+    id: "mobilisation",
+    name: "Mobilisation",
     phase: "Phase 1",
     weekRange: "Week 1",
     description: "Establish the mission with clear success factors, governance, stakeholders, and baseline experience.",
     icon: "Rocket",
     color: "#2BB5B8",
-    keywords: ["mobilization", "mobilisation", "mission", "placemat", "success criteria", "governance", "kick off", "kickoff", "scope", "guardrails", "north star", "mission alignment", "success factors", "baseline"],
+    keywords: ["mobilisation", "mobilization", "mission", "placemat", "success criteria", "governance", "kick off", "kickoff", "scope", "guardrails", "north star", "mission alignment", "success factors", "baseline"],
     prerequisites: [],
     deliverables: [
       "Mission Placemat (scope, guardrails, success criteria)",
@@ -30,9 +30,9 @@ export const MERCURY_AGENTS: AgentDefinition[] = [
       "Stakeholder identification",
       "Team assembly initiation"
     ],
-    systemPrompt: `You are the Mobilization Agent for Reason Group's Mercury Method — a 13-week delivery framework purpose-built for government.
+    systemPrompt: `You are the Mobilisation Agent for Reason Group's Mercury Method — a 13-week delivery framework purpose-built for government.
 
-You cover Phase 1: Mobilization (Week 1).
+You cover Phase 1: Mobilisation (Week 1).
 
 OBJECTIVE: Establish the mission with clear success factors that enable baseline experience to be established.
 
@@ -102,7 +102,7 @@ Always be practical, structured, and focused on establishing the foundation for 
     icon: "Calendar",
     color: "#0ea5e9",
     keywords: ["planning", "plan", "team", "roles", "responsibilities", "sandbox", "environment", "data access", "customer panel", "champion", "champion team", "project plan", "guardrails", "sandbox environment"],
-    prerequisites: ["mobilization"],
+    prerequisites: ["mobilisation"],
     deliverables: [
       "Project plan with team structure and guardrails",
       "Full team assembly with roles and responsibilities",
@@ -113,7 +113,7 @@ Always be practical, structured, and focused on establishing the foundation for 
     ],
     systemPrompt: `You are the Planning Agent for Reason Group's Mercury Method — a 13-week delivery framework purpose-built for government.
 
-You cover Phase 2: Planning (Week 1, alongside Mobilization).
+You cover Phase 2: Planning (Week 1, alongside Mobilisation).
 
 OBJECTIVE: Build the stakeholders, access the data, elect the leads, champions and build the safe guardrails.
 
@@ -184,7 +184,7 @@ Always focus on building the team and infrastructure needed to start building fr
     icon: "Search",
     color: "#8b5cf6",
     keywords: ["discovery", "research", "customer", "prototype", "prototyping", "data", "feedback", "showcase", "iteration", "ethnographic", "user testing", "interview", "journey map", "persona", "insights", "co-design", "ideation", "hothouse", "pain point", "user stories"],
-    prerequisites: ["mobilization", "planning"],
+    prerequisites: ["mobilisation", "planning"],
     deliverables: [
       "Initial validated prototypes and insights",
       "Customer research findings",
@@ -313,7 +313,7 @@ You cover Phase 4: Delivery (Weeks 4-12) — the longest and most intensive phas
 
 OBJECTIVE: Pilot and showcase value fast in the context of an evaluated delivery of work.
 
-The guardrails established in Mobilization, the team structure established in Planning, and the mission alignment confirmed in Discovery ensure successful delivery.
+The guardrails established in Mobilisation, the team structure established in Planning, and the mission alignment confirmed in Discovery ensure successful delivery.
 
 PHASE ACTIVITIES:
 - Iterative development

@@ -30,7 +30,7 @@ Mercury Copilot is an AI-powered chatbot for Reason Group's Mercury Method — a
 - **shared/schema.ts** - Drizzle schema for conversations, messages, and copilot_bots tables
 
 ## Mercury Method — 5 Phases, 13 Weeks
-1. **Mobilization** (Week 1) - Mission placemat, success criteria, governance, stakeholder ID, seven guardrails
+1. **Mobilisation** (Week 1) - Mission placemat, success criteria, governance, stakeholder ID, seven guardrails
 2. **Planning** (Week 1) - Team assembly, roles, sandbox environment, data access, customer panel, champion team
 3. **Discovery** (Weeks 2-3) - Customer research, data exploration, prototyping (multiple per day), feedback loops, daily showcases
 4. **Delivery** (Weeks 4-12) - Iterative development, daily playbacks, weekly value showcases, continuous user testing, champion validation
