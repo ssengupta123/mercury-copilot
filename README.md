@@ -1,0 +1,2 @@
+# Mercury Copilot
+Initial commit
