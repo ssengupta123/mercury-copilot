@@ -14,11 +14,12 @@ export async function registerRoutes(
     const agents = MERCURY_AGENTS.map(a => ({
       id: a.id,
       name: a.name,
-      weekRange: a.weekRange,
+      phase: a.phase,
       description: a.description,
       icon: a.icon,
       color: a.color,
       prerequisites: a.prerequisites,
+      deliverables: a.deliverables,
     }));
     res.json(agents);
   });

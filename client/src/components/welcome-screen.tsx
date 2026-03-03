@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { AgentIcon } from "@/components/agent-icon";
 import { Badge } from "@/components/ui/badge";
-import { Zap } from "lucide-react";
+import logoPath from "@assets/Reason_Group_Logo_Stacked_CMYK_(1)_1772514975025.png";
 import type { Agent } from "@/lib/types";
 
 interface WelcomeScreenProps {
@@ -10,33 +10,33 @@ interface WelcomeScreenProps {
 
 const suggestions = [
   {
-    label: "Business Requirements",
-    text: "I need help creating a Business Requirements Document template for my project",
-    agentHint: "business-analysis",
+    label: "Statement of Work",
+    text: "I need help creating a Statement of Work (SOW) for a new project engagement",
+    agentHint: "initiation",
+  },
+  {
+    label: "Requirements & User Stories",
+    text: "Help me structure requirements into Epics, Features, User Stories with Acceptance Criteria",
+    agentHint: "discovery-design",
+  },
+  {
+    label: "Testing Strategy",
+    text: "I need to create a testing strategy covering unit testing, SIT, and UAT",
+    agentHint: "planning",
   },
   {
     label: "Change Impact Analysis",
-    text: "Help me create a Change Management impact analysis for our system migration",
-    agentHint: "change-management",
+    text: "Help me create a change management and communication plan for our project",
+    agentHint: "discovery-design",
   },
   {
-    label: "Project Charter",
-    text: "I need to create a project charter for a new initiative",
-    agentHint: "discovery",
+    label: "Sprint Planning",
+    text: "Help me set up sprint planning with proper backlog structure and capacity planning",
+    agentHint: "design",
   },
   {
-    label: "Test Strategy",
-    text: "Help me define a test strategy and create test case templates",
-    agentHint: "testing",
-  },
-  {
-    label: "Solution Architecture",
-    text: "I need to design the solution architecture for our new platform",
-    agentHint: "solution-architecture",
-  },
-  {
-    label: "Go-Live Readiness",
-    text: "Help me assess our go-live readiness and create a deployment plan",
+    label: "Release & Deployment",
+    text: "I need a release checklist and deployment plan including TVT and BVT",
     agentHint: "deployment",
   },
 ];
@@ -49,13 +49,19 @@ export function WelcomeScreen({ onSuggestionClick }: WelcomeScreenProps) {
   return (
     <div className="flex-1 flex items-center justify-center p-6">
       <div className="max-w-2xl w-full space-y-8">
-        <div className="text-center space-y-3">
-          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto border border-primary/20">
-            <Zap className="w-8 h-8 text-primary" />
+        <div className="text-center space-y-4">
+          <img
+            src={logoPath}
+            alt="Reason Group"
+            className="w-20 h-20 rounded-xl mx-auto object-cover"
+            data-testid="img-welcome-logo"
+          />
+          <div>
+            <h2 className="text-2xl font-bold" data-testid="text-welcome-title">Mercury Copilot</h2>
+            <p className="text-sm text-primary font-medium mt-1">by Reason Group</p>
           </div>
-          <h2 className="text-2xl font-bold" data-testid="text-welcome-title">Welcome to Mercury Copilot</h2>
           <p className="text-muted-foreground text-sm max-w-md mx-auto">
-            Your AI-powered delivery orchestrator. I route your questions to 12 specialist agents covering every phase of the Mercury 12-week delivery process.
+            Your AI-powered delivery assistant. Ask me about any phase of the Mercury delivery methodology and I'll guide you through templates, best practices, and deliverables.
           </p>
         </div>
 
@@ -87,21 +93,16 @@ export function WelcomeScreen({ onSuggestionClick }: WelcomeScreenProps) {
         </div>
 
         <div className="text-center">
-          <p className="text-xs text-muted-foreground">
-            Powered by 12 specialist agents
+          <p className="text-xs text-muted-foreground mb-2">
+            9 delivery phases covered
           </p>
-          <div className="flex items-center justify-center gap-1 mt-2 flex-wrap">
-            {agents.slice(0, 6).map((agent) => (
+          <div className="flex items-center justify-center gap-1 flex-wrap">
+            {agents.map((agent) => (
               <Badge key={agent.id} variant="secondary" className="text-[10px] gap-1">
                 <AgentIcon icon={agent.icon} className="w-3 h-3" color={agent.color} />
                 {agent.name}
               </Badge>
             ))}
-            {agents.length > 6 && (
-              <Badge variant="secondary" className="text-[10px]">
-                +{agents.length - 6} more
-              </Badge>
-            )}
           </div>
         </div>
       </div>

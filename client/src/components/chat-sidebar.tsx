@@ -4,16 +4,15 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { AgentIcon } from "@/components/agent-icon";
 import { useTheme } from "@/components/theme-provider";
+import logoPath from "@assets/Reason_Group_Logo_Stacked_CMYK_(1)_1772514975025.png";
 import {
   Plus,
   MessageSquare,
   Trash2,
   Sun,
   Moon,
-  Zap,
   ChevronDown,
   ChevronRight,
 } from "lucide-react";
@@ -31,7 +30,7 @@ export function ChatSidebar({
   onNewConversation,
 }: ChatSidebarProps) {
   const { theme, toggleTheme } = useTheme();
-  const [showAgents, setShowAgents] = useState(false);
+  const [showAgents, setShowAgents] = useState(true);
 
   const { data: conversations = [] } = useQuery<Conversation[]>({
     queryKey: ["/api/conversations"],
@@ -51,16 +50,17 @@ export function ChatSidebar({
   });
 
   return (
-    <div className="flex flex-col h-full bg-sidebar text-sidebar-foreground">
-      <div className="p-4 flex items-center gap-2">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center shrink-0">
-            <Zap className="w-4 h-4 text-primary-foreground" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="font-semibold text-sm leading-tight truncate" data-testid="text-app-title">Mercury Copilot</h1>
-            <p className="text-xs text-muted-foreground truncate">Delivery Orchestrator</p>
-          </div>
+    <div className="flex flex-col h-full">
+      <div className="p-4 flex items-center gap-3">
+        <img
+          src={logoPath}
+          alt="Reason Group"
+          className="w-10 h-10 rounded-md object-cover"
+          data-testid="img-reason-logo"
+        />
+        <div className="min-w-0">
+          <h1 className="font-semibold text-sm leading-tight truncate" data-testid="text-app-title">Mercury Copilot</h1>
+          <p className="text-xs text-sidebar-foreground/60 truncate">by Reason Group</p>
         </div>
       </div>
 
@@ -77,15 +77,15 @@ export function ChatSidebar({
         </Button>
       </div>
 
-      <Separator />
+      <Separator className="bg-sidebar-border" />
 
       <ScrollArea className="flex-1 px-2">
         <div className="py-2 space-y-1">
-          <p className="px-2 text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+          <p className="px-2 text-xs font-medium text-sidebar-foreground/50 uppercase tracking-wider mb-2">
             Recent Chats
           </p>
           {conversations.length === 0 ? (
-            <p className="px-2 text-xs text-muted-foreground py-4">
+            <p className="px-2 text-xs text-sidebar-foreground/40 py-4">
               No conversations yet. Start a new one to get help with your Mercury delivery process.
             </p>
           ) : (
@@ -100,7 +100,7 @@ export function ChatSidebar({
                 onClick={() => onSelectConversation(conv.id)}
                 data-testid={`conversation-item-${conv.id}`}
               >
-                <MessageSquare className="w-4 h-4 shrink-0 text-muted-foreground" />
+                <MessageSquare className="w-4 h-4 shrink-0 text-sidebar-foreground/50" />
                 <span className="flex-1 text-sm truncate">{conv.title}</span>
                 <Button
                   variant="ghost"
@@ -122,7 +122,7 @@ export function ChatSidebar({
           )}
         </div>
 
-        <Separator className="my-2" />
+        <Separator className="my-2 bg-sidebar-border" />
 
         <div className="py-2">
           <button
@@ -131,28 +131,30 @@ export function ChatSidebar({
             data-testid="button-toggle-agents"
           >
             {showAgents ? (
-              <ChevronDown className="w-3 h-3 text-muted-foreground" />
+              <ChevronDown className="w-3 h-3 text-sidebar-foreground/50" />
             ) : (
-              <ChevronRight className="w-3 h-3 text-muted-foreground" />
+              <ChevronRight className="w-3 h-3 text-sidebar-foreground/50" />
             )}
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              Mercury Agents
+            <p className="text-xs font-medium text-sidebar-foreground/50 uppercase tracking-wider">
+              Mercury Phases
             </p>
           </button>
 
           {showAgents && (
             <div className="space-y-0.5 mt-1">
-              {agents.map((agent) => (
+              {agents.map((agent, index) => (
                 <div
                   key={agent.id}
                   className="flex items-center gap-2 px-2 py-1.5 rounded-md"
                   data-testid={`agent-info-${agent.id}`}
                 >
-                  <AgentIcon icon={agent.icon} className="w-3.5 h-3.5 shrink-0" color={agent.color} />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium truncate">{agent.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{agent.weekRange}</p>
+                  <div className="w-5 h-5 rounded flex items-center justify-center shrink-0" style={{ backgroundColor: agent.color + "20" }}>
+                    <AgentIcon icon={agent.icon} className="w-3 h-3" color={agent.color} />
                   </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-medium truncate text-sidebar-foreground/90">{agent.name}</p>
+                  </div>
+                  <span className="text-[10px] text-sidebar-foreground/40 shrink-0">P{index + 1}</span>
                 </div>
               ))}
             </div>
@@ -160,12 +162,12 @@ export function ChatSidebar({
         </div>
       </ScrollArea>
 
-      <Separator />
+      <Separator className="bg-sidebar-border" />
       <div className="p-3">
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start gap-2"
+          className="w-full justify-start gap-2 text-sidebar-foreground/70"
           onClick={toggleTheme}
           data-testid="button-theme-toggle"
         >

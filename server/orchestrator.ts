@@ -6,11 +6,11 @@ const openai = new OpenAI({
   baseURL: process.env.AI_INTEGRATIONS_OPENAI_BASE_URL,
 });
 
-const ORCHESTRATOR_SYSTEM_PROMPT = `You are the Mercury Copilot Orchestrator - an intelligent routing system for a 12-week delivery methodology called Mercury.
+const ORCHESTRATOR_SYSTEM_PROMPT = `You are the Mercury Copilot Orchestrator - an intelligent routing system for Reason Group's Mercury delivery methodology.
 
-Your job is to analyze the user's message and determine which specialist agent should handle it. You have 12 specialist agents:
+Your job is to analyze the user's message and determine which specialist agent should handle it. You have 9 phase-specific agents:
 
-${MERCURY_AGENTS.map(a => `- **${a.id}**: ${a.name} (${a.weekRange}) - ${a.description}`).join("\n")}
+${MERCURY_AGENTS.map(a => `- **${a.id}**: ${a.name} (${a.phase}) - ${a.description}`).join("\n")}
 
 ROUTING RULES:
 1. Analyze the user's message for intent and topic
@@ -20,12 +20,12 @@ ROUTING RULES:
    - "prerequisites_check": array of prerequisite agent IDs that should have been completed first
    - "greeting": a brief transition message to introduce the specialist agent
 
-3. If the user's message is a general greeting or unclear, route to "discovery" as the default starting point
+3. If the user's message is a general greeting or unclear, route to "initiation" as the default starting point
 4. If the user asks about multiple topics spanning agents, route to the MOST RELEVANT one first
 5. If the user is continuing a conversation with an agent, keep routing to the same agent unless they explicitly change topic
 
 RESPONSE FORMAT (strict JSON only):
-{"agentId": "business-analysis", "reason": "User asked about BRD template", "prerequisites_check": ["discovery"], "greeting": "I'll connect you with our Business Analysis specialist who can help with your BRD template."}`;
+{"agentId": "planning", "reason": "User asked about project plan template", "prerequisites_check": ["initiation"], "greeting": "I'll connect you with our Planning specialist who can help with your project plan."}`;
 
 export interface RoutingResult {
   agentId: string;
@@ -81,7 +81,7 @@ export async function routeMessage(
     const content = response.choices[0]?.message?.content || "{}";
     const parsed = JSON.parse(content);
 
-    const agentId = parsed.agentId || currentAgent || "discovery";
+    const agentId = parsed.agentId || currentAgent || "initiation";
     const agent = getAgentById(agentId) || MERCURY_AGENTS[0];
 
     return {

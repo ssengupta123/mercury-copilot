@@ -44,7 +44,7 @@ export function ChatMessage({ role, content, agentId, agents, isStreaming }: Cha
             <span className="text-xs font-medium" style={{ color: agent.color }}>
               {agent.name}
             </span>
-            <span className="text-[10px] text-muted-foreground">{agent.weekRange}</span>
+            <span className="text-[10px] text-muted-foreground">{agent.phase}</span>
           </div>
         )}
         <div className="bg-card rounded-2xl rounded-bl-md px-4 py-2.5 border border-card-border shadow-sm">

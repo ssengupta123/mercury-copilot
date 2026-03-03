@@ -178,7 +178,7 @@ export function ChatView({ conversationId, onConversationCreated }: ChatViewProp
         <div className="px-4 py-2 border-b border-border bg-card/50 flex items-center gap-2">
           <AgentIcon icon={activeAgent.icon} className="w-4 h-4" color={activeAgent.color} />
           <span className="text-sm font-medium">{activeAgent.name}</span>
-          <Badge variant="secondary" className="text-[10px]">{activeAgent.weekRange}</Badge>
+          <Badge variant="secondary" className="text-[10px]">{activeAgent.phase}</Badge>
         </div>
       )}
 

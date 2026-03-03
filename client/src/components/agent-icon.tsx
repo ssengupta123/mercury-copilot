@@ -12,6 +12,8 @@ import {
   Shield,
   BarChart3,
   Bot,
+  Upload,
+  ClipboardList,
 } from "lucide-react";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -27,6 +29,8 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Rocket,
   Shield,
   BarChart3,
+  Upload,
+  ClipboardList,
 };
 
 interface AgentIconProps {

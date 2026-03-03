@@ -1,11 +1,12 @@
 export interface Agent {
   id: string;
   name: string;
-  weekRange: string;
+  phase: string;
   description: string;
   icon: string;
   color: string;
   prerequisites: string[];
+  deliverables: string[];
 }
 
 export interface Conversation {
