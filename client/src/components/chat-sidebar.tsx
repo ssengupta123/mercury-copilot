@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AgentIcon } from "@/components/agent-icon";
 import { useTheme } from "@/components/theme-provider";
-import logoPath from "@assets/Reason_Group_Logo_CMYK_(1)_1772539075105.png";
+const logoPath = "/images/reason-group-logo-horizontal.png";
 import { Link } from "wouter";
 import {
   Sun,

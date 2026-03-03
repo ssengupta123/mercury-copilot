@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { AgentIcon } from "@/components/agent-icon";
-import logoPath from "@assets/Reason_Group_Logo_CMYK_(1)_1772539075105.png";
+const logoPath = "/images/reason-group-logo-horizontal.png";
 import type { Agent } from "@/lib/types";
 
 interface WelcomeScreenProps {
