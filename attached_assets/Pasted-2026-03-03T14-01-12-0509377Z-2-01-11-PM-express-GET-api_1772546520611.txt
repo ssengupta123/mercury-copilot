@@ -1,0 +1,46 @@
+2026-03-03T14:01:12.0509377Z 2:01:11 PM [express] GET /api/agents 304 in 317ms :: [{"id":"mobilisation","name":"Mobilisation","phase":"Phase 1","weekRange":"Week 1","description":"Establish the mission with clear success factors, governance, stakeholders, and baseline experience.","icon":"Rocket","color":"#2BB5B8","prerequisites":[],"deliverables":["Mission Placemat (scope, guardrails, success criteria)","Success criteria definition","Governance structure","Stakeholder identification","Team assembly initiation"]},{"id":"planning","name":"Planning","phase":"Phase 2","weekRange":"Week 1","description":"Build the stakeholders, access data, elect leads and champions, build safe guardrails.","icon":"Calendar","color":"#0ea5e9","prerequisites":["mobilisation"],"deliverables":["Project plan with team structure and guardrails","Full team assembly with roles and responsibilities","Sandbox environment setup","Data access requirements defined","Customer panel created","Champion working team built"]},{"id":"discovery","name":"Discovery","phase":"Phase 3","weekRange":"Weeks 2-3","description":"Engage customers, start deep prototypes working from both ends (data to customer), establish rules and iterate fast.","icon":"Search","color":"#8b5cf6","prerequisites":["mobilisation","planning"],"deliverables":["Initial validated prototypes and insights","Customer research findings","Data exploration and analysis results","Policy and rules analysis","Established feedback loops","Daily showcases (multiple per day)"]},{"id":"delivery","name":"Delivery","phase":"Phase 4","weekRange":"Weeks 4-12","description":"Pilot and showcase value fast through iterative development, daily playbacks, weekly showcases, and continuous user testing.","icon":"Code","color":"#10b981","prerequisites":["discovery"],"deliverables":["Working product in the hands of customers","Iterative development outputs","Daily playbacks completed","Weekly value showcases delivered","Continuous user testing results","Champion team validation","Integration testing results","Risk assessment and mitigation"]},{"id":"approval","name":"Approval","phase":"Phase 5","weekRange":"Week 13","description":"Align on mission and success criteria, validate value, handover documentation, lessons learned, and next steps.","icon":"CheckCircle","color":"#f59e0b","prerequisites":["delivery"],"deliverables":["Final showcase","Value validation against success criteria","Handover documentation","Lessons learned","Next steps planning","Confirmed value-proven outcome"]}]
+2026-03-03T14:01:12.4828844Z Error fetching conversations: Error: getaddrinfo ENOTFOUND base
+2026-03-03T14:01:12.4829163Z     at /home/site/wwwroot/index.cjs:217:13381
+2026-03-03T14:01:12.4829192Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2026-03-03T14:01:12.4829213Z     at async /home/site/wwwroot/index.cjs:223:38085
+2026-03-03T14:01:12.4829235Z     at async /home/site/wwwroot/index.cjs:665:1041 {
+2026-03-03T14:01:12.4829253Z   errno: -3008,
+2026-03-03T14:01:12.4829272Z   code: 'ENOTFOUND',
+2026-03-03T14:01:12.4829292Z   syscall: 'getaddrinfo',
+2026-03-03T14:01:12.482931Z   hostname: 'base'
+2026-03-03T14:01:12.4829328Z }
+2026-03-03T14:01:12.5893752Z 2:01:12 PM [express] GET /api/conversations 500 in 411ms :: {"error":"Failed to fetch conversations"}
+2026-03-03T14:01:19.9746935Z Error creating conversation: Error: getaddrinfo ENOTFOUND base
+2026-03-03T14:01:19.9747457Z     at /home/site/wwwroot/index.cjs:217:13381
+2026-03-03T14:01:19.9747495Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2026-03-03T14:01:19.9747518Z     at async /home/site/wwwroot/index.cjs:223:38085
+2026-03-03T14:01:19.9747541Z     at async c5.createConversation (/home/site/wwwroot/index.cjs:223:108824)
+2026-03-03T14:01:19.9747563Z     at async /home/site/wwwroot/index.cjs:665:1615 {
+2026-03-03T14:01:19.9747581Z   errno: -3008,
+2026-03-03T14:01:19.9747601Z   code: 'ENOTFOUND',
+2026-03-03T14:01:19.974762Z   syscall: 'getaddrinfo',
+2026-03-03T14:01:19.974764Z   hostname: 'base'
+2026-03-03T14:01:19.9747659Z }
+2026-03-03T14:01:20.004714Z 2:01:20 PM [express] POST /api/conversations 500 in 117ms :: {"error":"Failed to create conversation"}
+2026-03-03T14:01:20.1228893Z Error fetching conversations: Error: getaddrinfo ENOTFOUND base
+2026-03-03T14:01:20.1229524Z     at /home/site/wwwroot/index.cjs:217:13381
+2026-03-03T14:01:20.1229557Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2026-03-03T14:01:20.1229579Z     at async /home/site/wwwroot/index.cjs:223:38085
+2026-03-03T14:01:20.12296Z     at async /home/site/wwwroot/index.cjs:665:1041 {
+2026-03-03T14:01:20.1229621Z   errno: -3008,
+2026-03-03T14:01:20.1229641Z   code: 'ENOTFOUND',
+2026-03-03T14:01:20.1229661Z   syscall: 'getaddrinfo',
+2026-03-03T14:01:20.1229682Z   hostname: 'base'
+2026-03-03T14:01:20.1229701Z }
+2026-03-03T14:01:20.239974Z 2:01:20 PM [express] GET /api/conversations 500 in 135ms :: {"error":"Failed to fetch conversations"}
+2026-03-03T14:01:20.3595368Z Error sending message: Error: getaddrinfo ENOTFOUND base
+2026-03-03T14:01:20.3595827Z     at /home/site/wwwroot/index.cjs:217:13381
+2026-03-03T14:01:20.3595958Z     at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+2026-03-03T14:01:20.3595981Z     at async /home/site/wwwroot/index.cjs:223:38085
+2026-03-03T14:01:20.3596003Z     at async c5.getConversation (/home/site/wwwroot/index.cjs:223:108652)
+2026-03-03T14:01:20.3596026Z     at async /home/site/wwwroot/index.cjs:665:2290 {
+2026-03-03T14:01:20.3596045Z   errno: -3008,
+2026-03-03T14:01:20.3596064Z   code: 'ENOTFOUND',
+2026-03-03T14:01:20.3596085Z   syscall: 'getaddrinfo',
+2026-03-03T14:01:20.3596104Z   hostname: 'base'
+2026-03-03T14:01:20.3596123Z }
