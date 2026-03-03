@@ -1,10 +1,7 @@
-import { db } from "./db";
-import {
-  conversations, messages, copilotBots,
-  type Conversation, type Message, type InsertConversation, type InsertMessage,
-  type CopilotBot, type InsertCopilotBot
+import type {
+  Conversation, Message, CopilotBot,
+  InsertConversation, InsertMessage, InsertCopilotBot
 } from "@shared/schema";
-import { eq, desc, asc, and } from "drizzle-orm";
 
 export interface IStorage {
   getConversation(id: number): Promise<Conversation | undefined>;
@@ -24,88 +21,41 @@ export interface IStorage {
   getActiveBotForPhaseAndRole(phaseId: string, skillRole: string): Promise<CopilotBot | undefined>;
 }
 
-export class DatabaseStorage implements IStorage {
-  async getConversation(id: number): Promise<Conversation | undefined> {
-    const [conv] = await db.select().from(conversations).where(eq(conversations.id, id));
-    return conv;
+let storageInstance: IStorage | null = null;
+
+async function initStorage(): Promise<IStorage> {
+  if (storageInstance) return storageInstance;
+
+  if (process.env.AZURE_SQL_CONNECTION_STRING) {
+    const { MssqlStorage } = await import("./storage-mssql");
+    storageInstance = new MssqlStorage();
+  } else {
+    const { DatabaseStorage } = await import("./storage-pg");
+    storageInstance = new DatabaseStorage();
   }
 
-  async getAllConversations(): Promise<Conversation[]> {
-    return db.select().from(conversations).orderBy(desc(conversations.updatedAt));
-  }
-
-  async createConversation(data: InsertConversation): Promise<Conversation> {
-    const [conv] = await db.insert(conversations).values(data).returning();
-    return conv;
-  }
-
-  async updateConversation(id: number, data: Partial<InsertConversation>): Promise<Conversation | undefined> {
-    const [conv] = await db
-      .update(conversations)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(conversations.id, id))
-      .returning();
-    return conv;
-  }
-
-  async deleteConversation(id: number): Promise<void> {
-    await db.delete(messages).where(eq(messages.conversationId, id));
-    await db.delete(conversations).where(eq(conversations.id, id));
-  }
-
-  async getMessagesByConversation(conversationId: number): Promise<Message[]> {
-    return db.select().from(messages).where(eq(messages.conversationId, conversationId)).orderBy(asc(messages.createdAt));
-  }
-
-  async createMessage(data: InsertMessage): Promise<Message> {
-    const [msg] = await db.insert(messages).values(data).returning();
-    return msg;
-  }
-
-  async getAllCopilotBots(): Promise<CopilotBot[]> {
-    return db.select().from(copilotBots).orderBy(asc(copilotBots.phaseId), asc(copilotBots.skillRole));
-  }
-
-  async getCopilotBotsByPhase(phaseId: string): Promise<CopilotBot[]> {
-    return db.select().from(copilotBots).where(eq(copilotBots.phaseId, phaseId)).orderBy(asc(copilotBots.skillRole));
-  }
-
-  async getCopilotBot(id: number): Promise<CopilotBot | undefined> {
-    const [bot] = await db.select().from(copilotBots).where(eq(copilotBots.id, id));
-    return bot;
-  }
-
-  async createCopilotBot(data: InsertCopilotBot): Promise<CopilotBot> {
-    const [bot] = await db.insert(copilotBots).values(data).returning();
-    return bot;
-  }
-
-  async updateCopilotBot(id: number, data: Partial<InsertCopilotBot>): Promise<CopilotBot | undefined> {
-    const [bot] = await db
-      .update(copilotBots)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(copilotBots.id, id))
-      .returning();
-    return bot;
-  }
-
-  async deleteCopilotBot(id: number): Promise<void> {
-    await db.delete(copilotBots).where(eq(copilotBots.id, id));
-  }
-
-  async getActiveBotForPhaseAndRole(phaseId: string, skillRole: string): Promise<CopilotBot | undefined> {
-    const [bot] = await db
-      .select()
-      .from(copilotBots)
-      .where(
-        and(
-          eq(copilotBots.phaseId, phaseId),
-          eq(copilotBots.skillRole, skillRole),
-          eq(copilotBots.isActive, true)
-        )
-      );
-    return bot;
-  }
+  return storageInstance;
 }
 
-export const storage = new DatabaseStorage();
+class StorageProxy implements IStorage {
+  private getStorage(): Promise<IStorage> {
+    return initStorage();
+  }
+
+  async getConversation(id: number) { return (await this.getStorage()).getConversation(id); }
+  async getAllConversations() { return (await this.getStorage()).getAllConversations(); }
+  async createConversation(data: InsertConversation) { return (await this.getStorage()).createConversation(data); }
+  async updateConversation(id: number, data: Partial<InsertConversation>) { return (await this.getStorage()).updateConversation(id, data); }
+  async deleteConversation(id: number) { return (await this.getStorage()).deleteConversation(id); }
+  async getMessagesByConversation(conversationId: number) { return (await this.getStorage()).getMessagesByConversation(conversationId); }
+  async createMessage(data: InsertMessage) { return (await this.getStorage()).createMessage(data); }
+  async getAllCopilotBots() { return (await this.getStorage()).getAllCopilotBots(); }
+  async getCopilotBotsByPhase(phaseId: string) { return (await this.getStorage()).getCopilotBotsByPhase(phaseId); }
+  async getCopilotBot(id: number) { return (await this.getStorage()).getCopilotBot(id); }
+  async createCopilotBot(data: InsertCopilotBot) { return (await this.getStorage()).createCopilotBot(data); }
+  async updateCopilotBot(id: number, data: Partial<InsertCopilotBot>) { return (await this.getStorage()).updateCopilotBot(id, data); }
+  async deleteCopilotBot(id: number) { return (await this.getStorage()).deleteCopilotBot(id); }
+  async getActiveBotForPhaseAndRole(phaseId: string, skillRole: string) { return (await this.getStorage()).getActiveBotForPhaseAndRole(phaseId, skillRole); }
+}
+
+export const storage: IStorage = new StorageProxy();

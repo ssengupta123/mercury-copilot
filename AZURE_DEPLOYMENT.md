@@ -3,120 +3,127 @@
 ## Architecture
 
 ```
+Replit (dev) ──→ PostgreSQL (Replit built-in)
+    ↓ git push
 GitHub (main branch)
-    ↓ push
-GitHub Actions (CI/CD)
-    ↓ build + deploy
-Azure Web App (Node.js 20)
-    ↓ connects to
-Azure Database for PostgreSQL
+    ↓ GitHub Actions
+Azure Web App (Node.js 20) ──→ Azure SQL Database
 ```
 
 ## Prerequisites
 
 1. **Azure Account** with an active subscription
-2. **GitHub Repository** connected to this project
-3. **Azure CLI** installed locally (optional, for setup)
+2. **GitHub Repository** connected to this Replit project
 
-## Step 1: Create Azure Resources
+## Step 1: Create Azure SQL Database
 
-### Azure Database for PostgreSQL
-
-1. Go to Azure Portal → Create a resource → Azure Database for PostgreSQL Flexible Server
-2. Choose your subscription and resource group
-3. Set server name, region, and admin credentials
-4. Under Networking, allow Azure services to access the server
-5. After creation, note the connection string:
+1. Go to Azure Portal → **Create a resource** → search **SQL Database**
+2. Click **Create** and fill in:
+   - **Subscription**: your subscription
+   - **Resource group**: create new (e.g., `mercury-copilot-rg`)
+   - **Database name**: e.g., `mercury-copilot-db`
+   - **Server**: click **Create new**
+     - **Server name**: e.g., `mercury-copilot-sql`
+     - **Location**: pick a region close to your users
+     - **Authentication**: SQL authentication
+     - **Admin login**: e.g., `mercuryadmin`
+     - **Password**: create a strong password — save it
+   - **Compute + storage**: click Configure → choose **Basic** or **Standard S0** to start
+3. Click **Next: Networking**
+   - **Connectivity method**: Public endpoint
+   - **Allow Azure services**: Yes
+   - Optionally add your IP for direct access
+4. Click **Review + Create** → **Create**
+5. Once created, go to the resource → **Connection strings** → copy the **ADO.NET** string. It looks like:
    ```
-   postgresql://<admin>:<password>@<server>.postgres.database.azure.com:5432/<database>?sslmode=require
+   Server=tcp:mercury-copilot-sql.database.windows.net,1433;Initial Catalog=mercury-copilot-db;Persist Security Info=False;User ID=mercuryadmin;Password=YOUR_PASSWORD;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;
    ```
 
-### Azure Web App
+## Step 2: Initialize the Database Tables
 
-1. Go to Azure Portal → Create a resource → Web App
-2. Settings:
-   - **Runtime**: Node 20 LTS
-   - **OS**: Linux
-   - **Region**: Same as your database
-3. After creation, go to Configuration → Application settings and add:
-   - `DATABASE_URL` = your PostgreSQL connection string from above
-   - `DATABASE_SSL` = `true`
-   - `SESSION_SECRET` = a random secure string (generate with `openssl rand -hex 32`)
-   - `OPENAI_API_KEY` = your OpenAI API key (for AI features)
-   - `NODE_ENV` = `production`
-4. Under General settings:
-   - Startup Command: `node index.cjs`
+1. In Azure Portal, go to your SQL Database
+2. Click **Query editor** in the left menu
+3. Log in with your admin credentials
+4. Copy and paste the contents of `scripts/azure-sql-init.sql` from this project
+5. Click **Run** — this creates the conversations, messages, and copilot_bots tables
 
-## Step 2: Configure GitHub Actions
+## Step 3: Create the Azure Web App
 
-### Get the Publish Profile
+1. Go to **Create a resource** → search **Web App**
+2. Fill in:
+   - **Subscription**: same as above
+   - **Resource group**: `mercury-copilot-rg`
+   - **Name**: e.g., `mercury-copilot` (becomes `mercury-copilot.azurewebsites.net`)
+   - **Runtime stack**: Node 20 LTS
+   - **Operating System**: Linux
+   - **Region**: same as your database
+   - **Pricing plan**: Free (F1) to start, or Basic (B1) for production
+3. Click **Review + Create** → **Create**
 
-1. In Azure Portal, go to your Web App
-2. Click **Get publish profile** (top toolbar) — downloads a `.publishsettings` file
+## Step 4: Configure the Web App Environment
 
-### Add GitHub Secrets
+1. Go to your Web App → **Settings → Environment variables**
+2. Add these application settings:
 
-1. In your GitHub repo, go to Settings → Secrets and variables → Actions
-2. Add a new **repository secret**:
-   - Name: `AZURE_WEBAPP_PUBLISH_PROFILE`
-   - Value: paste the entire contents of the `.publishsettings` file
-3. Add a new **repository variable** (under Variables tab):
-   - Name: `AZURE_WEBAPP_NAME`
-   - Value: your Azure Web App name (e.g., `mercury-copilot`)
+   | Name | Value |
+   |------|-------|
+   | `AZURE_SQL_CONNECTION_STRING` | your Azure SQL connection string from Step 1 |
+   | `SESSION_SECRET` | any random string (30+ characters) |
+   | `OPENAI_API_KEY` | your OpenAI API key |
+   | `NODE_ENV` | `production` |
 
-## Step 3: Initialize the Database
+3. Click **Apply** and confirm
+4. Go to **Settings → Configuration → General settings**
+   - Set **Startup Command** to: `node index.cjs`
+   - Click **Save**
 
-After creating the Azure PostgreSQL database, push the schema:
+## Step 5: Set Up GitHub Actions Deployment
 
-```bash
-DATABASE_URL="your-azure-connection-string" DATABASE_SSL=true npm run db:push
-```
+1. In your Azure Web App, click **Get publish profile** (top toolbar) — downloads a file
+2. In your GitHub repo → **Settings → Secrets and variables → Actions**:
+   - **New repository secret**:
+     - Name: `AZURE_WEBAPP_PUBLISH_PROFILE`
+     - Value: entire contents of the downloaded `.publishsettings` file
+   - **New repository variable** (Variables tab):
+     - Name: `AZURE_WEBAPP_NAME`
+     - Value: your web app name (e.g., `mercury-copilot`)
 
-Or connect to the database and run the SQL from the Drizzle migrations.
+## Step 6: Connect Replit to GitHub and Deploy
 
-## Step 4: Deploy
+1. In Replit, click the **Git** icon in the left panel
+2. Connect to your GitHub repository
+3. Commit all changes and push to `main`
+4. Go to **GitHub → Actions** tab — the deployment will run automatically
+5. Once complete (~2-3 minutes), visit `https://your-app-name.azurewebsites.net`
 
-Push to the `main` branch:
+## Step 7: Verify
 
-```bash
-git add .
-git commit -m "Deploy to Azure"
-git push origin main
-```
+- Visit your app URL
+- Check health: `https://your-app-name.azurewebsites.net/api/health`
+- Monitor logs: Azure Portal → Web App → **Log stream**
 
-GitHub Actions will automatically:
-1. Install dependencies
-2. Build the frontend (Vite) and backend (esbuild)
-3. Deploy the `dist/` folder to Azure Web App
+## How It Works
 
-## Step 5: Verify
+The app automatically detects which database to use:
+- **If `AZURE_SQL_CONNECTION_STRING` is set** → uses Azure SQL (MSSQL) via the `mssql` package
+- **If not set** → uses PostgreSQL via `pg` and Drizzle ORM (Replit dev environment)
 
-1. Visit `https://<your-app-name>.azurewebsites.net`
-2. Check health: `https://<your-app-name>.azurewebsites.net/api/health`
-3. Monitor logs in Azure Portal → Web App → Log stream
+This means you can develop locally on Replit with PostgreSQL and deploy to Azure with Azure SQL — no code changes needed.
 
 ## Environment Variables Reference
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `DATABASE_SSL` | Yes (Azure) | Set to `true` for Azure PostgreSQL |
-| `SESSION_SECRET` | Yes | Secret for session encryption |
-| `OPENAI_API_KEY` | Yes | OpenAI API key for AI features |
-| `NODE_ENV` | Yes | Set to `production` |
-| `PORT` | No | Azure sets this automatically |
-
-## Connecting Replit to GitHub
-
-1. In Replit, click the Git icon in the left panel
-2. Click "Connect to GitHub"
-3. Create a new repo or connect to an existing one
-4. Use the Replit Git panel to commit and push changes
-5. Pushes to `main` will trigger the Azure deployment
+| Variable | Where | Description |
+|----------|-------|-------------|
+| `DATABASE_URL` | Replit (dev) | PostgreSQL connection string (auto-set by Replit) |
+| `AZURE_SQL_CONNECTION_STRING` | Azure (prod) | Azure SQL connection string |
+| `SESSION_SECRET` | Both | Secret for session encryption |
+| `OPENAI_API_KEY` | Both | OpenAI API key for AI features |
+| `NODE_ENV` | Azure | Set to `production` |
 
 ## Troubleshooting
 
-- **Database connection fails**: Check that `DATABASE_SSL=true` is set and the firewall allows Azure services
-- **App won't start**: Check the startup command is `node index.cjs` in Azure configuration
-- **Static files not served**: Ensure the build completed successfully in GitHub Actions logs
-- **Health check**: Hit `/api/health` to verify the app and database are connected
+- **Database connection fails**: Check the connection string and that Azure services are allowed through the firewall
+- **Tables don't exist**: Run `scripts/azure-sql-init.sql` in the Azure SQL Query editor
+- **App won't start**: Verify startup command is `node index.cjs`
+- **Health check**: Hit `/api/health` to verify connectivity
+- **Logs**: Azure Portal → Web App → Diagnose and solve problems → Application Logs

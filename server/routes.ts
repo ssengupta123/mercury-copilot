@@ -12,8 +12,14 @@ export async function registerRoutes(
 
   app.get("/api/health", async (_req, res) => {
     try {
-      const { pool } = await import("./db");
-      await pool.query("SELECT 1");
+      if (process.env.AZURE_SQL_CONNECTION_STRING) {
+        const { getPool } = await import("./db-mssql");
+        const pool = await getPool();
+        await pool.request().query("SELECT 1");
+      } else {
+        const { pool } = await import("./db");
+        await pool.query("SELECT 1");
+      }
       res.json({ status: "healthy", timestamp: new Date().toISOString() });
     } catch (error) {
       res.status(503).json({ status: "unhealthy", error: "Database connection failed" });

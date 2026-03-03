@@ -10,8 +10,11 @@ Mercury Copilot is an AI-powered chatbot for Reason Group's Mercury Method — a
 - **server/routes.ts** - API routes for conversations and messages
 - **server/orchestrator.ts** - AI orchestrator using GPT-5-nano for routing and GPT-5.2 for agent responses
 - **server/agents.ts** - 5 Mercury phase agents with system prompts, keywords, deliverables, and prerequisites
-- **server/storage.ts** - Database storage layer using Drizzle ORM
-- **server/db.ts** - PostgreSQL database connection via standard pg driver (compatible with Azure PostgreSQL)
+- **server/storage.ts** - Storage interface + proxy (auto-selects PG or MSSQL based on environment)
+- **server/storage-pg.ts** - PostgreSQL storage implementation (Drizzle ORM, used in Replit dev)
+- **server/storage-mssql.ts** - Azure SQL storage implementation (mssql package, used in Azure production)
+- **server/db.ts** - PostgreSQL database connection (Replit dev)
+- **server/db-mssql.ts** - Azure SQL database connection (Azure production)
 
 ### Frontend (React + TypeScript)
 - **client/src/App.tsx** - Root app component with routing and providers
@@ -74,24 +77,31 @@ Mercury Copilot is an AI-powered chatbot for Reason Group's Mercury Method — a
 ## Tech Stack
 - React + TypeScript + Vite (frontend)
 - Express + TypeScript (backend)
-- PostgreSQL + Drizzle ORM (database)
+- PostgreSQL + Drizzle ORM (dev database, Replit)
+- Azure SQL + mssql package (production database, Azure)
 - OpenAI via Replit AI Integrations (AI)
 - Tailwind CSS + shadcn/ui (styling)
 - TanStack Query (data fetching)
 
 ## Database
-PostgreSQL with tables:
-- `conversations` - id, title, activeAgent, createdAt, updatedAt
-- `messages` - id, conversationId, role, content, agentId, createdAt
-- `copilot_bots` - id, name, phaseId, skillRole, botEndpoint, botSecret, description, isActive, createdAt, updatedAt
+Dual database support — auto-detected by environment variable:
+- **Dev (Replit)**: PostgreSQL via `DATABASE_URL` + Drizzle ORM
+- **Prod (Azure)**: Azure SQL via `AZURE_SQL_CONNECTION_STRING` + mssql package
+
+Tables:
+- `conversations` - id, title, active_agent, created_at, updated_at
+- `messages` - id, conversation_id, role, content, agent_id, created_at
+- `copilot_bots` - id, name, phase_id, skill_role, bot_endpoint, bot_secret, description, is_active, created_at, updated_at
+
+Azure SQL schema init script: `scripts/azure-sql-init.sql`
 
 ## Deployment
-- **Dev environment**: Replit (this project)
-- **Production**: Azure Web App + Azure Database for PostgreSQL
+- **Dev environment**: Replit (this project) with PostgreSQL
+- **Production**: Azure Web App + Azure SQL Database
 - **CI/CD**: GitHub Actions (`.github/workflows/azure-deploy.yml`) — auto-deploys on push to `main`
 - **Build**: `npm run build` → `npm start` (frontend Vite + backend esbuild → `dist/index.cjs`)
 - **Health check**: GET `/api/health` — verifies app + database connectivity
-- **Azure config**: Set `DATABASE_SSL=true` for Azure PostgreSQL SSL connections
+- **Azure config**: Set `AZURE_SQL_CONNECTION_STRING` for Azure SQL connections
 - **Deployment guide**: See `AZURE_DEPLOYMENT.md` for full setup instructions
 
 ## Admin Panel
