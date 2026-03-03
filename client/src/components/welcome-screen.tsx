@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { AgentIcon } from "@/components/agent-icon";
-import logoPath from "@assets/Reason_Group_Logo_Stacked_CMYK_(1)_1772514975025.png";
+import logoPath from "@assets/Reason_Group_Logo_CMYK_(1)_1772539075105.png";
 import type { Agent } from "@/lib/types";
 
 interface WelcomeScreenProps {
@@ -19,7 +19,7 @@ export function WelcomeScreen({ onSuggestionClick }: WelcomeScreenProps) {
           <img
             src={logoPath}
             alt="Reason Group"
-            className="w-16 h-16 rounded-xl mx-auto object-cover"
+            className="h-12 mx-auto object-contain"
             data-testid="img-welcome-logo"
           />
           <div>

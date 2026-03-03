@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AgentIcon } from "@/components/agent-icon";
 import { useToast } from "@/hooks/use-toast";
-import logoPath from "@assets/Reason_Group_Logo_Stacked_CMYK_(1)_1772514975025.png";
+import logoPath from "@assets/Reason_Group_Logo_CMYK_(1)_1772539075105.png";
 import {
   Plus,
   Trash2,
@@ -178,7 +178,7 @@ export default function Admin() {
                 <ArrowLeft className="w-4 h-4" />
               </Button>
             </Link>
-            <img src={logoPath} alt="Reason Group" className="w-8 h-8 rounded object-cover" />
+            <img src={logoPath} alt="Reason Group" className="h-6 object-contain" />
             <div>
               <h1 className="font-semibold text-sm" data-testid="text-admin-title">Mercury Copilot Admin</h1>
               <p className="text-xs text-muted-foreground">Copilot Studio Bot Configuration</p>

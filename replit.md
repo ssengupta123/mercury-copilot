@@ -69,7 +69,7 @@ Mercury Copilot is an AI-powered chatbot for Reason Group's Mercury Method — a
 - Light mode: White background, white sidebar, dark text
 - Dark mode: Grey background with darker sidebar
 - Fonts: Inter (sans), JetBrains Mono (mono)
-- Logo: attached_assets/Reason_Group_Logo_Stacked_CMYK_(1)_1772514975025.png
+- Logo: attached_assets/Reason_Group_Logo_CMYK_(1)_1772539075105.png (horizontal format)
 
 ## Tech Stack
 - React + TypeScript + Vite (frontend)
