@@ -8,7 +8,6 @@ import { useTheme } from "@/components/theme-provider";
 import logoPath from "@assets/Reason_Group_Logo_CMYK_(1)_1772539075105.png";
 import { Link } from "wouter";
 import {
-  Plus,
   Sun,
   Settings,
   Moon,
@@ -46,19 +45,6 @@ export function ChatSidebar({
           data-testid="img-reason-logo"
         />
         <h1 className="font-semibold text-sm leading-tight" data-testid="text-app-title">Mercury Copilot</h1>
-      </div>
-
-      <div className="px-3 pb-2">
-        <Button
-          onClick={onNewConversation}
-          className="w-full justify-start gap-2"
-          variant="default"
-          size="sm"
-          data-testid="button-new-conversation"
-        >
-          <Plus className="w-4 h-4" />
-          New Conversation
-        </Button>
       </div>
 
       <Separator className="bg-sidebar-border" />
