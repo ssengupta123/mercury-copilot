@@ -95,7 +95,7 @@ export function ChatSidebar({
         </div>
       </ScrollArea>
 
-      <div className="border-t border-sidebar-border p-3 space-y-1">
+      <div className="p-3 space-y-1">
         <Link href="/admin">
           <Button
             variant="ghost"
