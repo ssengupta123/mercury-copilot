@@ -1,0 +1,87 @@
+2026-03-05T02:34:25.7302414Z Error fetching conversations: V2 [RequestError]: Invalid object name 'conversations'.
+2026-03-05T02:34:25.7302958Z     at A (/home/site/wwwroot/index.cjs:202:31643)
+2026-03-05T02:34:25.7302986Z     at MC.emit (node:events:519:28)
+2026-03-05T02:34:25.7303009Z     at MC.emit (/home/site/wwwroot/index.cjs:201:311504)
+2026-03-05T02:34:25.7303032Z     at l9.onErrorMessage (/home/site/wwwroot/index.cjs:201:285292)
+2026-03-05T02:34:25.7303054Z     at Readable.<anonymous> (/home/site/wwwroot/index.cjs:201:268916)
+2026-03-05T02:34:25.7303076Z     at Readable.emit (node:events:519:28)
+2026-03-05T02:34:25.7303098Z     at addChunk (node:internal/streams/readable:561:12)
+2026-03-05T02:34:25.7303123Z     at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+2026-03-05T02:34:25.7303145Z     at Readable.push (node:internal/streams/readable:393:5)
+2026-03-05T02:34:25.7303167Z     at nextAsync (node:internal/streams/from:194:22) {
+2026-03-05T02:34:25.7303215Z   code: 'EREQUEST',
+2026-03-05T02:34:25.7303238Z   originalError: Error: Invalid object name 'conversations'.
+2026-03-05T02:34:25.7303259Z       at A (/home/site/wwwroot/index.cjs:202:31608)
+2026-03-05T02:34:25.730328Z       at MC.emit (node:events:519:28)
+2026-03-05T02:34:25.7303302Z       at MC.emit (/home/site/wwwroot/index.cjs:201:311504)
+2026-03-05T02:34:25.7303326Z       at l9.onErrorMessage (/home/site/wwwroot/index.cjs:201:285292)
+2026-03-05T02:34:25.7303348Z       at Readable.<anonymous> (/home/site/wwwroot/index.cjs:201:268916)
+2026-03-05T02:34:25.7303369Z       at Readable.emit (node:events:519:28)
+2026-03-05T02:34:25.7303392Z       at addChunk (node:internal/streams/readable:561:12)
+2026-03-05T02:34:25.7303424Z       at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+2026-03-05T02:34:25.7303446Z       at Readable.push (node:internal/streams/readable:393:5)
+2026-03-05T02:34:25.7303488Z       at nextAsync (node:internal/streams/from:194:22) {
+2026-03-05T02:34:25.7303508Z     info: wB {
+2026-03-05T02:34:25.7303531Z       name: 'ERROR',
+2026-03-05T02:34:25.7303552Z       handlerName: 'onErrorMessage',
+2026-03-05T02:34:25.7303572Z       number: 208,
+2026-03-05T02:34:25.7303592Z       state: 1,
+2026-03-05T02:34:25.7303611Z       class: 16,
+2026-03-05T02:34:25.7303632Z       message: "Invalid object name 'conversations'.",
+2026-03-05T02:34:25.7303653Z       serverName: 'financehubserver',
+2026-03-05T02:34:25.7303672Z       procName: '',
+2026-03-05T02:34:25.7303692Z       lineNumber: 1
+2026-03-05T02:34:25.7303811Z     }
+2026-03-05T02:34:25.7303834Z   },
+2026-03-05T02:34:25.7303854Z   number: 208,
+2026-03-05T02:34:25.7303875Z   lineNumber: 1,
+2026-03-05T02:34:25.7303894Z   state: 1,
+2026-03-05T02:34:25.7303914Z   class: 16,
+2026-03-05T02:34:25.7303934Z   serverName: 'financehubserver',
+2026-03-05T02:34:25.7303953Z   procName: '',
+2026-03-05T02:34:25.7303973Z   precedingErrors: []
+2026-03-05T02:34:25.7303992Z }
+2026-03-05T02:34:25.7327014Z 2:34:25 AM [express] GET /api/conversations 500 in 52742ms :: {"error":"Failed to fetch conversations"}
+2026-03-05T02:34:25.7570186Z Error fetching copilot bots: V2 [RequestError]: Invalid object name 'copilot_bots'.
+2026-03-05T02:34:25.7570602Z     at A (/home/site/wwwroot/index.cjs:202:31643)
+2026-03-05T02:34:25.7570632Z     at MC.emit (node:events:519:28)
+2026-03-05T02:34:25.7570655Z     at MC.emit (/home/site/wwwroot/index.cjs:201:311504)
+2026-03-05T02:34:25.7570678Z     at l9.onErrorMessage (/home/site/wwwroot/index.cjs:201:285292)
+2026-03-05T02:34:25.7570701Z     at Readable.<anonymous> (/home/site/wwwroot/index.cjs:201:268916)
+2026-03-05T02:34:25.7570722Z     at Readable.emit (node:events:519:28)
+2026-03-05T02:34:25.7570744Z     at addChunk (node:internal/streams/readable:561:12)
+2026-03-05T02:34:25.7570766Z     at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+2026-03-05T02:34:25.7570788Z     at Readable.push (node:internal/streams/readable:393:5)
+2026-03-05T02:34:25.757081Z     at nextAsync (node:internal/streams/from:194:22) {
+2026-03-05T02:34:25.7570856Z   code: 'EREQUEST',
+2026-03-05T02:34:25.7570879Z   originalError: Error: Invalid object name 'copilot_bots'.
+2026-03-05T02:34:25.7570901Z       at A (/home/site/wwwroot/index.cjs:202:31608)
+2026-03-05T02:34:25.7570922Z       at MC.emit (node:events:519:28)
+2026-03-05T02:34:25.7570943Z       at MC.emit (/home/site/wwwroot/index.cjs:201:311504)
+2026-03-05T02:34:25.7570965Z       at l9.onErrorMessage (/home/site/wwwroot/index.cjs:201:285292)
+2026-03-05T02:34:25.7570986Z       at Readable.<anonymous> (/home/site/wwwroot/index.cjs:201:268916)
+2026-03-05T02:34:25.7571007Z       at Readable.emit (node:events:519:28)
+2026-03-05T02:34:25.7571029Z       at addChunk (node:internal/streams/readable:561:12)
+2026-03-05T02:34:25.7571051Z       at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+2026-03-05T02:34:25.7571076Z       at Readable.push (node:internal/streams/readable:393:5)
+2026-03-05T02:34:25.7571117Z       at nextAsync (node:internal/streams/from:194:22) {
+2026-03-05T02:34:25.7571138Z     info: wB {
+2026-03-05T02:34:25.7571158Z       name: 'ERROR',
+2026-03-05T02:34:25.7571178Z       handlerName: 'onErrorMessage',
+2026-03-05T02:34:25.7571198Z       number: 208,
+2026-03-05T02:34:25.7571218Z       state: 1,
+2026-03-05T02:34:25.7571238Z       class: 16,
+2026-03-05T02:34:25.7571534Z       message: "Invalid object name 'copilot_bots'.",
+2026-03-05T02:34:25.7571557Z       serverName: 'financehubserver',
+2026-03-05T02:34:25.7571576Z       procName: '',
+2026-03-05T02:34:25.7571596Z       lineNumber: 1
+2026-03-05T02:34:25.7571636Z     }
+2026-03-05T02:34:25.7571658Z   },
+2026-03-05T02:34:25.7571678Z   number: 208,
+2026-03-05T02:34:25.7571697Z   lineNumber: 1,
+2026-03-05T02:34:25.7571718Z   state: 1,
+2026-03-05T02:34:25.7571737Z   class: 16,
+2026-03-05T02:34:25.7571758Z   serverName: 'financehubserver',
+2026-03-05T02:34:25.7571777Z   procName: '',
+2026-03-05T02:34:25.7571797Z   precedingErrors: []
+2026-03-05T02:34:25.7571817Z }
