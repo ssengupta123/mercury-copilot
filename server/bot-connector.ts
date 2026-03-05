@@ -1,130 +1,137 @@
 import { getMsalClient } from "./auth";
 
-interface DirectLineToken {
-  token: string;
+interface CopilotConversation {
   conversationId: string;
 }
 
-export async function getDirectLineToken(botSecret: string): Promise<DirectLineToken> {
-  const response = await fetch(
-    "https://directline.botframework.com/v3/directline/tokens/generate",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${botSecret}`,
-        "Content-Type": "application/json",
-      },
+export async function getAccessTokenForCopilot(
+  userAccessToken: string
+): Promise<string> {
+  try {
+    const msalClient = getMsalClient();
+    const result = await msalClient.acquireTokenOnBehalfOf({
+      oboAssertion: userAccessToken,
+      scopes: ["https://api.powerplatform.com/.default"],
+    });
+    if (!result?.accessToken) {
+      throw new Error("OBO token exchange failed");
     }
-  );
-
-  if (!response.ok) {
-    throw new Error(`Failed to get Direct Line token: ${response.statusText}`);
+    return result.accessToken;
+  } catch (error) {
+    console.error("Token exchange error:", error);
+    throw error;
   }
-
-  return response.json();
 }
 
-export async function exchangeTokenForBot(
-  userAccessToken: string,
-  botClientId: string
-): Promise<string> {
-  const msalClient = getMsalClient();
-  const result = await msalClient.acquireTokenOnBehalfOf({
-    oboAssertion: userAccessToken,
-    scopes: [`api://${botClientId}/access_as_user`],
+export async function startCopilotConversation(
+  botEndpoint: string,
+  accessToken: string
+): Promise<CopilotConversation> {
+  const response = await fetch(botEndpoint, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({}),
   });
 
-  if (!result?.accessToken) {
-    throw new Error("Token exchange failed");
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Failed to start conversation: ${response.status} ${errorText}`);
   }
 
-  return result.accessToken;
+  const data = await response.json();
+  return { conversationId: data.conversationId };
 }
 
 export async function sendMessageToBot(
-  directLineToken: string,
+  botEndpoint: string,
   conversationId: string,
   message: string,
-  userToken?: string
+  accessToken: string
 ): Promise<string> {
-  let convId = conversationId;
+  const activitiesUrl = `${botEndpoint}/${conversationId}/activities`;
 
-  if (!convId) {
-    const startResp = await fetch(
-      "https://directline.botframework.com/v3/directline/conversations",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${directLineToken}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-    const convData = await startResp.json();
-    convId = convData.conversationId;
-  }
-
-  const activity: any = {
+  const activity = {
     type: "message",
-    from: { id: "mercury-copilot-user" },
     text: message,
   };
 
-  if (userToken) {
-    activity.channelData = {
-      authToken: userToken,
-    };
-  }
-
-  const sendResp = await fetch(
-    `https://directline.botframework.com/v3/directline/conversations/${convId}/activities`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${directLineToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(activity),
-    }
-  );
+  const sendResp = await fetch(activitiesUrl, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(activity),
+  });
 
   if (!sendResp.ok) {
-    throw new Error(`Failed to send message: ${sendResp.statusText}`);
+    const errorText = await sendResp.text();
+    throw new Error(`Failed to send message: ${sendResp.status} ${errorText}`);
   }
 
-  const botResponse = await pollBotResponse(directLineToken, convId);
+  const botResponse = await pollCopilotResponse(botEndpoint, conversationId, accessToken);
   return botResponse;
 }
 
-async function pollBotResponse(
-  token: string,
+async function pollCopilotResponse(
+  botEndpoint: string,
   conversationId: string,
-  maxAttempts = 15
+  accessToken: string,
+  maxAttempts = 20
 ): Promise<string> {
-  let watermark = "";
+  const activitiesUrl = `${botEndpoint}/${conversationId}/activities`;
 
   for (let i = 0; i < maxAttempts; i++) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    const url = `https://directline.botframework.com/v3/directline/conversations/${conversationId}/activities${
-      watermark ? `?watermark=${watermark}` : ""
-    }`;
-
-    const resp = await fetch(url, {
-      headers: { Authorization: `Bearer ${token}` },
+    const resp = await fetch(activitiesUrl, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
     });
 
-    const data = await resp.json();
-    watermark = data.watermark || watermark;
+    if (!resp.ok) continue;
 
-    const botMessages = data.activities?.filter(
-      (a: any) => a.from.id !== "mercury-copilot-user" && a.type === "message"
+    const data = await resp.json();
+    const activities = data.activities || data.value || [];
+
+    const botMessages = activities.filter(
+      (a: any) => a.type === "message" && a.from?.role === "bot"
     );
 
-    if (botMessages?.length > 0) {
-      return botMessages[botMessages.length - 1].text;
+    if (botMessages.length > 0) {
+      const lastMessage = botMessages[botMessages.length - 1];
+      return lastMessage.text || lastMessage.content || "Bot responded without text content.";
     }
   }
 
   return "The specialist bot did not respond in time. Please try again.";
+}
+
+export async function callCopilotBot(
+  botEndpoint: string,
+  message: string,
+  userAccessToken?: string
+): Promise<string> {
+  let accessToken: string;
+
+  if (userAccessToken) {
+    accessToken = await getAccessTokenForCopilot(userAccessToken);
+  } else {
+    throw new Error("User must be authenticated to call Copilot Studio bots");
+  }
+
+  const conversation = await startCopilotConversation(botEndpoint, accessToken);
+  const response = await sendMessageToBot(
+    botEndpoint,
+    conversation.conversationId,
+    message,
+    accessToken
+  );
+
+  return response;
 }
