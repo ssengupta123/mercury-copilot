@@ -1,8 +1,9 @@
 import { getDb } from "./db";
 import {
-  conversations, messages, copilotBots,
+  conversations, messages, copilotBots, phaseConfigs, documents,
   type Conversation, type Message, type InsertConversation, type InsertMessage,
-  type CopilotBot, type InsertCopilotBot
+  type CopilotBot, type InsertCopilotBot, type PhaseConfig, type InsertPhaseConfig,
+  type Document, type InsertDocument
 } from "@shared/schema";
 import { eq, desc, asc, and } from "drizzle-orm";
 import type { IStorage } from "./storage";
@@ -102,5 +103,48 @@ export class DatabaseStorage implements IStorage {
         )
       );
     return bot;
+  }
+
+  async getAllPhaseConfigs(): Promise<PhaseConfig[]> {
+    const db = await getDb();
+    return db.select().from(phaseConfigs).orderBy(asc(phaseConfigs.phaseId));
+  }
+
+  async getPhaseConfig(phaseId: string): Promise<PhaseConfig | undefined> {
+    const db = await getDb();
+    const [config] = await db.select().from(phaseConfigs).where(eq(phaseConfigs.phaseId, phaseId));
+    return config;
+  }
+
+  async upsertPhaseConfig(data: InsertPhaseConfig): Promise<PhaseConfig> {
+    const db = await getDb();
+    const existing = await this.getPhaseConfig(data.phaseId);
+    if (existing) {
+      const [updated] = await db
+        .update(phaseConfigs)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(phaseConfigs.phaseId, data.phaseId))
+        .returning();
+      return updated;
+    }
+    const [created] = await db.insert(phaseConfigs).values(data).returning();
+    return created;
+  }
+
+  async createDocument(data: InsertDocument): Promise<Document> {
+    const db = await getDb();
+    const [doc] = await db.insert(documents).values(data).returning();
+    return doc;
+  }
+
+  async getDocument(id: number): Promise<Document | undefined> {
+    const db = await getDb();
+    const [doc] = await db.select().from(documents).where(eq(documents.id, id));
+    return doc;
+  }
+
+  async getDocumentsByConversation(conversationId: number): Promise<Document[]> {
+    const db = await getDb();
+    return db.select().from(documents).where(eq(documents.conversationId, conversationId)).orderBy(asc(documents.createdAt));
   }
 }

@@ -54,3 +54,38 @@ IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_copilot_bots_phase_rol
 BEGIN
     CREATE INDEX IX_copilot_bots_phase_role ON copilot_bots(phase_id, skill_role);
 END;
+
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'phase_configs')
+BEGIN
+    CREATE TABLE phase_configs (
+        id INT IDENTITY(1,1) PRIMARY KEY,
+        phase_id NVARCHAR(255) NOT NULL UNIQUE,
+        system_prompt NVARCHAR(MAX) NOT NULL,
+        deliverables NVARCHAR(MAX) NOT NULL,
+        keywords NVARCHAR(MAX) NOT NULL,
+        description NVARCHAR(MAX) NOT NULL,
+        week_range NVARCHAR(255) NOT NULL,
+        updated_at DATETIME2 NOT NULL DEFAULT GETUTCDATE()
+    );
+END;
+
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'documents')
+BEGIN
+    CREATE TABLE documents (
+        id INT IDENTITY(1,1) PRIMARY KEY,
+        conversation_id INT NULL,
+        filename NVARCHAR(500) NOT NULL,
+        original_name NVARCHAR(500) NOT NULL,
+        mime_type NVARCHAR(255) NOT NULL,
+        size INT NOT NULL,
+        created_at DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+        CONSTRAINT FK_documents_conversations
+            FOREIGN KEY (conversation_id) REFERENCES conversations(id)
+            ON DELETE CASCADE
+    );
+END;
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_documents_conversation_id')
+BEGIN
+    CREATE INDEX IX_documents_conversation_id ON documents(conversation_id);
+END;

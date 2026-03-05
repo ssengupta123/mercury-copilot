@@ -243,7 +243,7 @@ export function ChatView({ conversationId, selectedPhase, onConversationCreated 
         </div>
       </ScrollArea>
 
-      <ChatInput onSend={handleSend} isLoading={isStreaming} />
+      <ChatInput onSend={handleSend} isLoading={isStreaming} conversationId={conversationId} />
     </div>
   );
 }

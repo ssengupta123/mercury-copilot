@@ -184,15 +184,23 @@ export default function Admin() {
               <p className="text-xs text-muted-foreground">Copilot Studio Bot Configuration</p>
             </div>
           </div>
-          <Button
-            onClick={() => { resetForm(); setShowForm(true); }}
-            size="sm"
-            className="gap-2"
-            data-testid="button-add-bot"
-          >
-            <Plus className="w-4 h-4" />
-            Add Bot
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link href="/admin/phases">
+              <Button variant="outline" size="sm" className="gap-2" data-testid="button-phase-config">
+                <Settings className="w-4 h-4" />
+                Phase Config
+              </Button>
+            </Link>
+            <Button
+              onClick={() => { resetForm(); setShowForm(true); }}
+              size="sm"
+              className="gap-2"
+              data-testid="button-add-bot"
+            >
+              <Plus className="w-4 h-4" />
+              Add Bot
+            </Button>
+          </div>
         </div>
       </header>
 

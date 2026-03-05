@@ -1,6 +1,6 @@
 import type {
-  Conversation, Message, CopilotBot,
-  InsertConversation, InsertMessage, InsertCopilotBot
+  Conversation, Message, CopilotBot, PhaseConfig, Document,
+  InsertConversation, InsertMessage, InsertCopilotBot, InsertPhaseConfig, InsertDocument
 } from "@shared/schema";
 
 export interface IStorage {
@@ -19,6 +19,14 @@ export interface IStorage {
   updateCopilotBot(id: number, data: Partial<InsertCopilotBot>): Promise<CopilotBot | undefined>;
   deleteCopilotBot(id: number): Promise<void>;
   getActiveBotForPhaseAndRole(phaseId: string, skillRole: string): Promise<CopilotBot | undefined>;
+
+  getAllPhaseConfigs(): Promise<PhaseConfig[]>;
+  getPhaseConfig(phaseId: string): Promise<PhaseConfig | undefined>;
+  upsertPhaseConfig(data: InsertPhaseConfig): Promise<PhaseConfig>;
+
+  createDocument(data: InsertDocument): Promise<Document>;
+  getDocument(id: number): Promise<Document | undefined>;
+  getDocumentsByConversation(conversationId: number): Promise<Document[]>;
 }
 
 let storageInstance: IStorage | null = null;
@@ -56,6 +64,12 @@ class StorageProxy implements IStorage {
   async updateCopilotBot(id: number, data: Partial<InsertCopilotBot>) { return (await this.getStorage()).updateCopilotBot(id, data); }
   async deleteCopilotBot(id: number) { return (await this.getStorage()).deleteCopilotBot(id); }
   async getActiveBotForPhaseAndRole(phaseId: string, skillRole: string) { return (await this.getStorage()).getActiveBotForPhaseAndRole(phaseId, skillRole); }
+  async getAllPhaseConfigs() { return (await this.getStorage()).getAllPhaseConfigs(); }
+  async getPhaseConfig(phaseId: string) { return (await this.getStorage()).getPhaseConfig(phaseId); }
+  async upsertPhaseConfig(data: InsertPhaseConfig) { return (await this.getStorage()).upsertPhaseConfig(data); }
+  async createDocument(data: InsertDocument) { return (await this.getStorage()).createDocument(data); }
+  async getDocument(id: number) { return (await this.getStorage()).getDocument(id); }
+  async getDocumentsByConversation(conversationId: number) { return (await this.getStorage()).getDocumentsByConversation(conversationId); }
 }
 
 export const storage: IStorage = new StorageProxy();
