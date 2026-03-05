@@ -1,8 +1,8 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { routeMessage, generateAgentResponse } from "./orchestrator";
-import { MERCURY_AGENTS, getAgentById } from "./agents";
+import { routeMessage } from "./orchestrator";
+import { MERCURY_AGENTS } from "./agents";
 import { sendMessageSchema, insertCopilotBotSchema } from "@shared/schema";
 import { callCopilotBot } from "./bot-connector";
 
@@ -129,24 +129,6 @@ export async function registerRoutes(
         });
       }
 
-      let prerequisiteWarning: string | undefined;
-      const missingPrereqs = routing.agent.prerequisites.filter(prereqId => {
-        const hasDiscussion = existingMessages.some(m => m.agentId === prereqId);
-        return !hasDiscussion;
-      });
-
-      if (missingPrereqs.length > 0) {
-        const prereqNames = missingPrereqs
-          .map(id => getAgentById(id)?.name || id)
-          .join(", ");
-        prerequisiteWarning = `The user may not have completed prerequisite phases: ${prereqNames}. Gently mention this and offer to help with prerequisites if needed, but still answer their question.`;
-      }
-
-      const history = existingMessages.map(m => ({
-        role: m.role,
-        content: m.content,
-      }));
-
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
       res.setHeader("Connection", "keep-alive");
@@ -163,29 +145,27 @@ export async function registerRoutes(
 
       try {
         const configuredBots = await storage.getCopilotBotsByPhase(routing.agentId);
-        const activeBots = configuredBots.filter(b => b.isActive);
+        const activeBots = configuredBots.filter(b => b.isActive && b.botEndpoint);
 
         if (activeBots.length > 0) {
-          const botList = activeBots.map(b => `${b.skillRole}: ${b.name}`).join(", ");
-          const botContext = `\n\nNOTE: This phase has the following Copilot Studio bots configured for specialist skills: ${botList}. When the user needs deep specialist help in one of these areas, mention that a dedicated Copilot bot is available and describe what it can help with. The bot endpoints are managed by the admin.`;
-          const enhancedWarning = (prerequisiteWarning || "") + botContext;
-          const stream = generateAgentResponse(routing.agent, content, history, enhancedWarning);
-          for await (const chunk of stream) {
-            fullResponse += chunk;
-            res.write(`data: ${JSON.stringify({ type: "content", content: chunk })}\n\n`);
+          const bot = activeBots[0];
+          try {
+            const userToken = req.session?.accessToken;
+            const botReply = await callCopilotBot(bot.botEndpoint, content, userToken);
+            fullResponse = botReply;
+          } catch (botError) {
+            console.error("Error calling Copilot bot:", botError);
+            fullResponse = `Sorry, I encountered an issue connecting to the specialist agent (${bot.name}). Please try again later.`;
           }
+          res.write(`data: ${JSON.stringify({ type: "content", content: fullResponse })}\n\n`);
         } else {
-          const stream = generateAgentResponse(routing.agent, content, history, prerequisiteWarning);
-          for await (const chunk of stream) {
-            fullResponse += chunk;
-            res.write(`data: ${JSON.stringify({ type: "content", content: chunk })}\n\n`);
-          }
+          fullResponse = "Sorry, currently no specialist agent is available for this phase. Please contact your administrator to configure a Copilot Studio bot.";
+          res.write(`data: ${JSON.stringify({ type: "content", content: fullResponse })}\n\n`);
         }
       } catch (streamError) {
-        console.error("Error during streaming:", streamError);
-        const errorMsg = "I apologize, but I encountered an issue generating a response. Please try again.";
-        fullResponse = errorMsg;
-        res.write(`data: ${JSON.stringify({ type: "content", content: errorMsg })}\n\n`);
+        console.error("Error during response:", streamError);
+        fullResponse = "Sorry, currently no specialist agent is available.";
+        res.write(`data: ${JSON.stringify({ type: "content", content: fullResponse })}\n\n`);
       }
 
       await storage.createMessage({
@@ -319,35 +299,6 @@ export async function registerRoutes(
     req.session.destroy(() => {
       res.json({ success: true });
     });
-  });
-
-  app.post("/api/bots/:botId/message", async (req, res) => {
-    try {
-      const botId = parseInt(req.params.botId);
-      const { message } = req.body;
-
-      if (!message) return res.status(400).json({ error: "Message is required" });
-
-      const bot = await storage.getCopilotBot(botId);
-      if (!bot || !bot.isActive) {
-        return res.status(404).json({ error: "Bot not found or inactive" });
-      }
-      if (!bot.botEndpoint) {
-        return res.status(400).json({ error: "Bot endpoint not configured" });
-      }
-
-      const userToken = req.session?.accessToken;
-      const botResponse = await callCopilotBot(bot.botEndpoint, message, userToken);
-
-      res.json({
-        response: botResponse,
-        botName: bot.name,
-        skillRole: bot.skillRole,
-      });
-    } catch (error) {
-      console.error("Error calling Copilot bot:", error);
-      res.status(500).json({ error: "Failed to communicate with bot" });
-    }
   });
 
   return httpServer;
