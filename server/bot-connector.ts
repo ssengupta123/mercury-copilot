@@ -4,23 +4,15 @@ interface CopilotConversation {
   conversationId: string;
 }
 
-export async function getAccessTokenForCopilot(
-  userAccessToken: string
-): Promise<string> {
-  try {
-    const msalClient = getMsalClient();
-    const result = await msalClient.acquireTokenOnBehalfOf({
-      oboAssertion: userAccessToken,
-      scopes: ["https://api.powerplatform.com/.default"],
-    });
-    if (!result?.accessToken) {
-      throw new Error("OBO token exchange failed");
-    }
-    return result.accessToken;
-  } catch (error) {
-    console.error("Token exchange error:", error);
-    throw error;
+async function getAppTokenForCopilot(): Promise<string> {
+  const msalClient = getMsalClient();
+  const result = await msalClient.acquireTokenByClientCredential({
+    scopes: ["https://api.powerplatform.com/.default"],
+  });
+  if (!result?.accessToken) {
+    throw new Error("Failed to acquire app token for Power Platform API");
   }
+  return result.accessToken;
 }
 
 export async function startCopilotConversation(
@@ -115,15 +107,9 @@ async function pollCopilotResponse(
 export async function callCopilotBot(
   botEndpoint: string,
   message: string,
-  userAccessToken?: string
+  _userAccessToken?: string
 ): Promise<string> {
-  let accessToken: string;
-
-  if (userAccessToken) {
-    accessToken = await getAccessTokenForCopilot(userAccessToken);
-  } else {
-    throw new Error("User must be authenticated to call Copilot Studio bots");
-  }
+  const accessToken = await getAppTokenForCopilot();
 
   const conversation = await startCopilotConversation(botEndpoint, accessToken);
   const response = await sendMessageToBot(
