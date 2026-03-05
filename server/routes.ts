@@ -1,9 +1,10 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { routeMessage, generateAgentResponse } from "./orchestrator";
 import { MERCURY_AGENTS, getAgentById } from "./agents";
 import { sendMessageSchema, insertCopilotBotSchema } from "@shared/schema";
+import { getDirectLineToken, sendMessageToBot } from "./bot-connector";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -262,6 +263,91 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting copilot bot:", error);
       res.status(500).json({ error: "Failed to delete copilot bot" });
+    }
+  });
+
+  const ssoEnabled = !!(process.env.AZURE_CLIENT_ID && process.env.AZURE_TENANT_ID && process.env.AZURE_CLIENT_SECRET);
+
+  app.get("/api/auth/login", async (req, res) => {
+    if (!ssoEnabled) return res.status(501).json({ error: "SSO not configured" });
+    try {
+      const { getMsalClient, SCOPES, getRedirectUri } = await import("./auth");
+      const authUrl = await getMsalClient().getAuthCodeUrl({
+        scopes: SCOPES,
+        redirectUri: getRedirectUri(),
+        prompt: "select_account",
+      });
+      res.redirect(authUrl);
+    } catch (error) {
+      console.error("Auth login error:", error);
+      res.status(500).json({ error: "Failed to initiate login" });
+    }
+  });
+
+  app.get("/api/auth/callback", async (req, res) => {
+    if (!ssoEnabled) return res.redirect("/?error=sso_not_configured");
+    try {
+      const { getMsalClient, SCOPES, getRedirectUri } = await import("./auth");
+      const tokenResponse = await getMsalClient().acquireTokenByCode({
+        code: req.query.code as string,
+        scopes: SCOPES,
+        redirectUri: getRedirectUri(),
+      });
+      req.session.user = {
+        name: tokenResponse.account?.name || "User",
+        email: tokenResponse.account?.username || "",
+        oid: tokenResponse.account?.homeAccountId || "",
+      };
+      req.session.accessToken = tokenResponse.accessToken;
+      req.session.idToken = tokenResponse.idToken;
+      res.redirect("/");
+    } catch (error) {
+      console.error("Auth callback error:", error);
+      res.redirect("/?error=auth_failed");
+    }
+  });
+
+  app.get("/api/auth/me", (req, res) => {
+    if (req.session?.user) {
+      res.json({ authenticated: true, user: req.session.user, ssoEnabled });
+    } else {
+      res.json({ authenticated: false, ssoEnabled });
+    }
+  });
+
+  app.post("/api/auth/logout", (req, res) => {
+    req.session.destroy(() => {
+      res.json({ success: true });
+    });
+  });
+
+  app.post("/api/bots/:botId/message", async (req, res) => {
+    try {
+      const botId = parseInt(req.params.botId);
+      const { message } = req.body;
+
+      if (!message) return res.status(400).json({ error: "Message is required" });
+
+      const bot = await storage.getCopilotBot(botId);
+      if (!bot || !bot.isActive) {
+        return res.status(404).json({ error: "Bot not found or inactive" });
+      }
+      if (!bot.botSecret) {
+        return res.status(400).json({ error: "Bot Direct Line secret not configured" });
+      }
+
+      const dlToken = await getDirectLineToken(bot.botSecret);
+      const userToken = req.session?.accessToken;
+      const botResponse = await sendMessageToBot(dlToken.token, "", message, userToken);
+
+      res.json({
+        response: botResponse,
+        botName: bot.name,
+        skillRole: bot.skillRole,
+      });
+    } catch (error) {
+      console.error("Error calling Copilot bot:", error);
+      res.status(500).json({ error: "Failed to communicate with bot" });
     }
   });
 
