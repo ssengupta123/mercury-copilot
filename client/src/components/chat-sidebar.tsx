@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AgentIcon } from "@/components/agent-icon";
 import { useTheme } from "@/components/theme-provider";
+import { useAuth } from "@/hooks/use-auth";
 const logoPath = "/images/reason-group-logo-horizontal.png";
 import { Link } from "wouter";
 import {
@@ -12,6 +13,9 @@ import {
   Moon,
   ChevronDown,
   ChevronRight,
+  LogIn,
+  LogOut,
+  User,
 } from "lucide-react";
 import type { Agent } from "@/lib/types";
 
@@ -28,6 +32,7 @@ export function ChatSidebar({
   onSelectPhase,
 }: ChatSidebarProps) {
   const { theme, toggleTheme } = useTheme();
+  const { user, isAuthenticated, ssoEnabled, login, logout } = useAuth();
   const [showAgents, setShowAgents] = useState(true);
 
   const { data: agents = [] } = useQuery<Agent[]>({
@@ -96,6 +101,12 @@ export function ChatSidebar({
       </ScrollArea>
 
       <div className="p-3 space-y-1">
+        {ssoEnabled && isAuthenticated && (
+          <div className="flex items-center gap-2 px-2 py-1.5 mb-1">
+            <User className="w-4 h-4 text-sidebar-foreground/70 shrink-0" />
+            <span className="text-xs text-sidebar-foreground/70 truncate" data-testid="text-user-name">{user?.name}</span>
+          </div>
+        )}
         <Link href="/admin">
           <Button
             variant="ghost"
@@ -117,6 +128,31 @@ export function ChatSidebar({
           {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           {theme === "dark" ? "Light Mode" : "Dark Mode"}
         </Button>
+        {ssoEnabled && (
+          isAuthenticated ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start gap-2 text-sidebar-foreground/70"
+              onClick={logout}
+              data-testid="button-sign-out"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start gap-2 text-sidebar-foreground/70"
+              onClick={login}
+              data-testid="button-sign-in"
+            >
+              <LogIn className="w-4 h-4" />
+              Sign in with Microsoft
+            </Button>
+          )
+        )}
       </div>
     </div>
   );
