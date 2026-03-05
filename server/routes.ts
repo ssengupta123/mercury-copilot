@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { routeMessage, generateAgentResponse } from "./orchestrator";
 import { MERCURY_AGENTS, getAgentById } from "./agents";
 import { sendMessageSchema, insertCopilotBotSchema } from "@shared/schema";
-import { getDirectLineToken, sendMessageToBot } from "./bot-connector";
+import { callCopilotBot } from "./bot-connector";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -332,13 +332,16 @@ export async function registerRoutes(
       if (!bot || !bot.isActive) {
         return res.status(404).json({ error: "Bot not found or inactive" });
       }
-      if (!bot.botSecret) {
-        return res.status(400).json({ error: "Bot Direct Line secret not configured" });
+      if (!bot.botEndpoint) {
+        return res.status(400).json({ error: "Bot endpoint not configured" });
       }
 
-      const dlToken = await getDirectLineToken(bot.botSecret);
       const userToken = req.session?.accessToken;
-      const botResponse = await sendMessageToBot(dlToken.token, "", message, userToken);
+      if (!userToken) {
+        return res.status(401).json({ error: "You must be signed in to use Copilot Studio bots" });
+      }
+
+      const botResponse = await callCopilotBot(bot.botEndpoint, message, userToken);
 
       res.json({
         response: botResponse,
