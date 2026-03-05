@@ -27,6 +27,7 @@ export interface IStorage {
   createDocument(data: InsertDocument): Promise<Document>;
   getDocument(id: number): Promise<Document | undefined>;
   getDocumentsByConversation(conversationId: number): Promise<Document[]>;
+  linkDocumentToConversation(id: number, conversationId: number): Promise<void>;
 }
 
 let storageInstance: IStorage | null = null;
@@ -70,6 +71,7 @@ class StorageProxy implements IStorage {
   async createDocument(data: InsertDocument) { return (await this.getStorage()).createDocument(data); }
   async getDocument(id: number) { return (await this.getStorage()).getDocument(id); }
   async getDocumentsByConversation(conversationId: number) { return (await this.getStorage()).getDocumentsByConversation(conversationId); }
+  async linkDocumentToConversation(id: number, conversationId: number) { return (await this.getStorage()).linkDocumentToConversation(id, conversationId); }
 }
 
 export const storage: IStorage = new StorageProxy();

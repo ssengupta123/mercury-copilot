@@ -272,6 +272,14 @@ export class MssqlStorage implements IStorage {
     return result.recordset.map(r => this.mapDocument(r)!);
   }
 
+  async linkDocumentToConversation(id: number, conversationId: number): Promise<void> {
+    const pool = await getPool();
+    await pool.request()
+      .input("id", sql.Int, id)
+      .input("conversationId", sql.Int, conversationId)
+      .query("UPDATE documents SET conversation_id = @conversationId WHERE id = @id");
+  }
+
   private mapConversation(row: any): Conversation | undefined {
     if (!row) return undefined;
     return {

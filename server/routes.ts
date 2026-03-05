@@ -341,6 +341,21 @@ export async function registerRoutes(
     res.sendFile(filePath);
   });
 
+  app.patch("/api/documents/:id/link", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { conversationId } = req.body;
+      if (!conversationId) return res.status(400).json({ error: "conversationId required" });
+      const doc = await storage.getDocument(id);
+      if (!doc) return res.status(404).json({ error: "Document not found" });
+      await storage.linkDocumentToConversation(id, conversationId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error linking document:", error);
+      res.status(500).json({ error: "Failed to link document" });
+    }
+  });
+
   app.get("/api/conversations/:id/documents", async (req, res) => {
     try {
       const id = parseInt(req.params.id);

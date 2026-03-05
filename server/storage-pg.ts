@@ -147,4 +147,9 @@ export class DatabaseStorage implements IStorage {
     const db = await getDb();
     return db.select().from(documents).where(eq(documents.conversationId, conversationId)).orderBy(asc(documents.createdAt));
   }
+
+  async linkDocumentToConversation(id: number, conversationId: number): Promise<void> {
+    const db = await getDb();
+    await db.update(documents).set({ conversationId }).where(eq(documents.id, id));
+  }
 }
