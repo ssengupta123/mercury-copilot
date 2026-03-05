@@ -8,7 +8,7 @@ Mercury Copilot is an AI-powered chatbot for Reason Group's Mercury Method — a
 ### Backend (Express + TypeScript)
 - **server/index.ts** - Express server entry point
 - **server/routes.ts** - API routes for conversations and messages
-- **server/orchestrator.ts** - AI orchestrator using GPT-5-nano for routing and GPT-5.2 for agent responses
+- **server/orchestrator.ts** - Keyword-based message routing to Mercury phase agents (no OpenAI dependency)
 - **server/agents.ts** - 5 Mercury phase agents with system prompts, keywords, deliverables, and prerequisites
 - **server/storage.ts** - Storage interface + proxy (auto-selects PG or MSSQL based on environment)
 - **server/storage-pg.ts** - PostgreSQL storage implementation (Drizzle ORM, used in Replit dev)
@@ -19,9 +19,11 @@ Mercury Copilot is an AI-powered chatbot for Reason Group's Mercury Method — a
 ### Frontend (React + TypeScript)
 - **client/src/App.tsx** - Root app component with routing and providers
 - **client/src/pages/home.tsx** - Main page with sidebar + chat layout
+- **client/src/pages/admin.tsx** - Admin panel for bot configuration
+- **client/src/pages/phase-config.tsx** - Phase configuration editor (prompts, deliverables, keywords)
 - **client/src/components/chat-view.tsx** - Chat view with SSE streaming support
 - **client/src/components/chat-sidebar.tsx** - Sidebar with Reason Group logo, conversations, and Mercury phases
-- **client/src/components/chat-input.tsx** - Chat input with keyboard shortcuts
+- **client/src/components/chat-input.tsx** - Chat input with keyboard shortcuts and file upload
 - **client/src/components/chat-message.tsx** - Message display with agent indicators
 - **client/src/components/welcome-screen.tsx** - Welcome screen with suggestion cards
 - **client/src/components/markdown-renderer.tsx** - XSS-safe markdown rendering
@@ -30,7 +32,7 @@ Mercury Copilot is an AI-powered chatbot for Reason Group's Mercury Method — a
 - **client/src/lib/types.ts** - Frontend TypeScript types
 
 ### Shared
-- **shared/schema.ts** - Drizzle schema for conversations, messages, and copilot_bots tables
+- **shared/schema.ts** - Drizzle schema for conversations, messages, copilot_bots, phase_configs, and documents tables
 
 ## Mercury Method — 5 Phases, 13 Weeks
 1. **Mobilisation** (Week 1) - Mission placemat, success criteria, governance, stakeholder ID, seven guardrails
@@ -56,13 +58,14 @@ Mercury Copilot is an AI-powered chatbot for Reason Group's Mercury Method — a
 7. Create Value Showcases Daily
 
 ## Key Features
-- Intelligent message routing via AI orchestrator
-- Streaming AI responses via SSE
-- Agent prerequisite checking
-- Conversation persistence in PostgreSQL
-- Admin configuration panel (/admin) for registering Microsoft Copilot Studio bots per phase and skill role
+- Keyword-based message routing to Mercury phase agents
+- Direct routing to Copilot Studio bots when assigned to phase; "no specialist agent available" when not
+- File upload (up to 10MB) — paperclip icon in chat input, stored on disk
+- Phase configuration admin page (/admin/phases) — edit prompts, deliverables, keywords per phase
+- Admin bot panel (/admin) for registering Microsoft Copilot Studio bots per phase and skill role
 - Copilot bot CRUD via API: GET/POST/PATCH/DELETE /api/admin/copilot-bots
-- Orchestrator awareness of configured bots — informs agents about available specialist bots
+- SSO via Microsoft Entra ID (MSAL) with identity flowing to Copilot Studio bots
+- Conversation persistence in PostgreSQL (dev) / Azure SQL (prod)
 - Dark/light theme toggle (light default, white background)
 - Rich markdown rendering for templates and guidance
 - Reason Group logo in sidebar and welcome screen
@@ -79,7 +82,7 @@ Mercury Copilot is an AI-powered chatbot for Reason Group's Mercury Method — a
 - Express + TypeScript (backend)
 - PostgreSQL + Drizzle ORM (dev database, Replit)
 - Azure SQL + mssql package (production database, Azure)
-- OpenAI via Replit AI Integrations (AI)
+- Microsoft Copilot Studio (specialist bot responses via Dataverse API)
 - Tailwind CSS + shadcn/ui (styling)
 - TanStack Query (data fetching)
 
@@ -92,6 +95,8 @@ Tables:
 - `conversations` - id, title, active_agent, created_at, updated_at
 - `messages` - id, conversation_id, role, content, agent_id, created_at
 - `copilot_bots` - id, name, phase_id, skill_role, bot_endpoint, bot_secret, description, is_active, created_at, updated_at
+- `phase_configs` - id, phase_id (unique), system_prompt, deliverables (array), keywords (array), description, week_range, updated_at
+- `documents` - id, conversation_id, filename, original_name, mime_type, size, created_at
 
 Azure SQL schema init script: `scripts/azure-sql-init.sql`
 
@@ -105,9 +110,12 @@ Azure SQL schema init script: `scripts/azure-sql-init.sql`
 - **Deployment guide**: See `AZURE_DEPLOYMENT.md` for full setup instructions
 
 ## Admin Panel
-- Route: /admin
-- Page: client/src/pages/admin.tsx
-- API: /api/admin/copilot-bots (CRUD)
+- Route: /admin — Bot configuration
+- Route: /admin/phases — Phase configuration (prompts, deliverables, keywords)
+- Pages: client/src/pages/admin.tsx, client/src/pages/phase-config.tsx
+- API: /api/admin/copilot-bots (CRUD), /api/admin/phase-configs (GET all, PUT per phase)
+- API: /api/upload (POST file), /api/uploads/:filename (GET file), /api/conversations/:id/documents (GET)
 - Accessible via "Admin Settings" link in sidebar
 - Manages Microsoft Copilot Studio bot registrations per Mercury phase and skill role
-- Skill roles: Business Analyst, Solution Architect, Data Engineer, Tech Lead, Tester, Business Consultant, Rules Expert, UX Designer, Change Manager, Project Coordinator, Custom
+- Phase config allows editing system prompts, deliverables, and keywords per phase
+- File upload supports PDF, DOC, DOCX, TXT, CSV, XLSX, XLS, PPTX, PPT, PNG, JPG, GIF (max 10MB)

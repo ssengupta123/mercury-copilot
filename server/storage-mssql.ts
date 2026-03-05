@@ -3,8 +3,8 @@ import type {
   IStorage
 } from "./storage";
 import type {
-  Conversation, Message, CopilotBot,
-  InsertConversation, InsertMessage, InsertCopilotBot
+  Conversation, Message, CopilotBot, PhaseConfig, Document,
+  InsertConversation, InsertMessage, InsertCopilotBot, InsertPhaseConfig, InsertDocument
 } from "@shared/schema";
 
 export class MssqlStorage implements IStorage {
@@ -187,6 +187,99 @@ export class MssqlStorage implements IStorage {
     return this.mapCopilotBot(result.recordset[0]);
   }
 
+  async getAllPhaseConfigs(): Promise<PhaseConfig[]> {
+    const pool = await getPool();
+    const result = await pool.request()
+      .query("SELECT * FROM phase_configs ORDER BY phase_id ASC");
+    return result.recordset.map(r => this.mapPhaseConfig(r)!);
+  }
+
+  async getPhaseConfig(phaseId: string): Promise<PhaseConfig | undefined> {
+    const pool = await getPool();
+    const result = await pool.request()
+      .input("phaseId", sql.NVarChar, phaseId)
+      .query("SELECT * FROM phase_configs WHERE phase_id = @phaseId");
+    return this.mapPhaseConfig(result.recordset[0]);
+  }
+
+  async upsertPhaseConfig(data: InsertPhaseConfig): Promise<PhaseConfig> {
+    const pool = await getPool();
+    const existing = await this.getPhaseConfig(data.phaseId);
+    const deliverablesJson = JSON.stringify(data.deliverables);
+    const keywordsJson = JSON.stringify(data.keywords);
+
+    if (existing) {
+      const result = await pool.request()
+        .input("phaseId", sql.NVarChar, data.phaseId)
+        .input("systemPrompt", sql.NVarChar(sql.MAX), data.systemPrompt)
+        .input("deliverables", sql.NVarChar(sql.MAX), deliverablesJson)
+        .input("keywords", sql.NVarChar(sql.MAX), keywordsJson)
+        .input("description", sql.NVarChar(sql.MAX), data.description)
+        .input("weekRange", sql.NVarChar, data.weekRange)
+        .query(`
+          UPDATE phase_configs SET system_prompt = @systemPrompt, deliverables = @deliverables,
+            keywords = @keywords, description = @description, week_range = @weekRange, updated_at = GETUTCDATE()
+          OUTPUT INSERTED.*
+          WHERE phase_id = @phaseId
+        `);
+      return this.mapPhaseConfig(result.recordset[0])!;
+    }
+
+    const result = await pool.request()
+      .input("phaseId", sql.NVarChar, data.phaseId)
+      .input("systemPrompt", sql.NVarChar(sql.MAX), data.systemPrompt)
+      .input("deliverables", sql.NVarChar(sql.MAX), deliverablesJson)
+      .input("keywords", sql.NVarChar(sql.MAX), keywordsJson)
+      .input("description", sql.NVarChar(sql.MAX), data.description)
+      .input("weekRange", sql.NVarChar, data.weekRange)
+      .query(`
+        INSERT INTO phase_configs (phase_id, system_prompt, deliverables, keywords, description, week_range, updated_at)
+        OUTPUT INSERTED.*
+        VALUES (@phaseId, @systemPrompt, @deliverables, @keywords, @description, @weekRange, GETUTCDATE())
+      `);
+    return this.mapPhaseConfig(result.recordset[0])!;
+  }
+
+  async createDocument(data: InsertDocument): Promise<Document> {
+    const pool = await getPool();
+    const result = await pool.request()
+      .input("conversationId", sql.Int, data.conversationId || null)
+      .input("filename", sql.NVarChar, data.filename)
+      .input("originalName", sql.NVarChar, data.originalName)
+      .input("mimeType", sql.NVarChar, data.mimeType)
+      .input("size", sql.Int, data.size)
+      .query(`
+        INSERT INTO documents (conversation_id, filename, original_name, mime_type, size, created_at)
+        OUTPUT INSERTED.*
+        VALUES (@conversationId, @filename, @originalName, @mimeType, @size, GETUTCDATE())
+      `);
+    return this.mapDocument(result.recordset[0])!;
+  }
+
+  async getDocument(id: number): Promise<Document | undefined> {
+    const pool = await getPool();
+    const result = await pool.request()
+      .input("id", sql.Int, id)
+      .query("SELECT * FROM documents WHERE id = @id");
+    return this.mapDocument(result.recordset[0]);
+  }
+
+  async getDocumentsByConversation(conversationId: number): Promise<Document[]> {
+    const pool = await getPool();
+    const result = await pool.request()
+      .input("conversationId", sql.Int, conversationId)
+      .query("SELECT * FROM documents WHERE conversation_id = @conversationId ORDER BY created_at ASC");
+    return result.recordset.map(r => this.mapDocument(r)!);
+  }
+
+  async linkDocumentToConversation(id: number, conversationId: number): Promise<void> {
+    const pool = await getPool();
+    await pool.request()
+      .input("id", sql.Int, id)
+      .input("conversationId", sql.Int, conversationId)
+      .query("UPDATE documents SET conversation_id = @conversationId WHERE id = @id");
+  }
+
   private mapConversation(row: any): Conversation | undefined {
     if (!row) return undefined;
     return {
@@ -223,6 +316,37 @@ export class MssqlStorage implements IStorage {
       isActive: row.is_active,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
+    };
+  }
+
+  private mapPhaseConfig(row: any): PhaseConfig | undefined {
+    if (!row) return undefined;
+    let deliverables = row.deliverables;
+    let keywords = row.keywords;
+    if (typeof deliverables === "string") deliverables = JSON.parse(deliverables);
+    if (typeof keywords === "string") keywords = JSON.parse(keywords);
+    return {
+      id: row.id,
+      phaseId: row.phase_id,
+      systemPrompt: row.system_prompt,
+      deliverables,
+      keywords,
+      description: row.description,
+      weekRange: row.week_range,
+      updatedAt: row.updated_at,
+    };
+  }
+
+  private mapDocument(row: any): Document | undefined {
+    if (!row) return undefined;
+    return {
+      id: row.id,
+      conversationId: row.conversation_id,
+      filename: row.filename,
+      originalName: row.original_name,
+      mimeType: row.mime_type,
+      size: row.size,
+      createdAt: row.created_at,
     };
   }
 }

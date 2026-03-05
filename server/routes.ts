@@ -3,8 +3,26 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { routeMessage } from "./orchestrator";
 import { MERCURY_AGENTS } from "./agents";
-import { sendMessageSchema, insertCopilotBotSchema } from "@shared/schema";
+import { sendMessageSchema, insertCopilotBotSchema, insertPhaseConfigSchema } from "@shared/schema";
 import { callCopilotBot } from "./bot-connector";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+
+const UPLOADS_DIR = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
+    filename: (_req, file, cb) => {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      const ext = path.extname(file.originalname);
+      cb(null, uniqueSuffix + ext);
+    },
+  }),
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
 
 export async function registerRoutes(
   httpServer: Server,
@@ -243,6 +261,109 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error deleting copilot bot:", error);
       res.status(500).json({ error: "Failed to delete copilot bot" });
+    }
+  });
+
+  app.get("/api/admin/phase-configs", async (_req, res) => {
+    try {
+      const configs = await storage.getAllPhaseConfigs();
+      const defaultConfigs = MERCURY_AGENTS.map(a => {
+        const saved = configs.find(c => c.phaseId === a.id);
+        return saved || {
+          id: 0,
+          phaseId: a.id,
+          systemPrompt: a.systemPrompt,
+          deliverables: a.deliverables,
+          keywords: a.keywords,
+          description: a.description,
+          weekRange: a.weekRange,
+          updatedAt: null,
+        };
+      });
+      res.json(defaultConfigs);
+    } catch (error) {
+      console.error("Error fetching phase configs:", error);
+      res.status(500).json({ error: "Failed to fetch phase configs" });
+    }
+  });
+
+  app.put("/api/admin/phase-configs/:phaseId", async (req, res) => {
+    try {
+      const { phaseId } = req.params;
+      const agent = MERCURY_AGENTS.find(a => a.id === phaseId);
+      if (!agent) return res.status(404).json({ error: "Phase not found" });
+
+      const data = {
+        phaseId,
+        systemPrompt: req.body.systemPrompt || agent.systemPrompt,
+        deliverables: req.body.deliverables || agent.deliverables,
+        keywords: req.body.keywords || agent.keywords,
+        description: req.body.description || agent.description,
+        weekRange: req.body.weekRange || agent.weekRange,
+      };
+
+      const parsed = insertPhaseConfigSchema.safeParse(data);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid config data", details: parsed.error.errors });
+      }
+
+      const config = await storage.upsertPhaseConfig(parsed.data);
+      res.json(config);
+    } catch (error) {
+      console.error("Error updating phase config:", error);
+      res.status(500).json({ error: "Failed to update phase config" });
+    }
+  });
+
+  app.post("/api/upload", upload.single("file"), async (req, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
+      const conversationId = req.body.conversationId ? parseInt(req.body.conversationId) : null;
+      const doc = await storage.createDocument({
+        conversationId,
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+      });
+
+      res.status(201).json(doc);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      res.status(500).json({ error: "Failed to upload file" });
+    }
+  });
+
+  app.get("/api/uploads/:filename", (req, res) => {
+    const filePath = path.join(UPLOADS_DIR, req.params.filename);
+    if (!fs.existsSync(filePath)) return res.status(404).json({ error: "File not found" });
+    res.sendFile(filePath);
+  });
+
+  app.patch("/api/documents/:id/link", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { conversationId } = req.body;
+      if (!conversationId) return res.status(400).json({ error: "conversationId required" });
+      const doc = await storage.getDocument(id);
+      if (!doc) return res.status(404).json({ error: "Document not found" });
+      await storage.linkDocumentToConversation(id, conversationId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error linking document:", error);
+      res.status(500).json({ error: "Failed to link document" });
+    }
+  });
+
+  app.get("/api/conversations/:id/documents", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const docs = await storage.getDocumentsByConversation(id);
+      res.json(docs);
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+      res.status(500).json({ error: "Failed to fetch documents" });
     }
   });
 

@@ -48,7 +48,7 @@ export function ChatView({ conversationId, selectedPhase, onConversationCreated 
     scrollToBottom();
   }, [messages, streamingContent, scrollToBottom]);
 
-  const handleSend = async (content: string) => {
+  const handleSend = async (content: string, attachments?: { id: number; filename: string; originalName: string; conversationId?: number | null }[]) => {
     let targetConvId = conversationId;
 
     if (!targetConvId) {
@@ -62,6 +62,18 @@ export function ChatView({ conversationId, selectedPhase, onConversationCreated 
         targetConvId = newConv.id;
         onConversationCreated(newConv.id);
         queryClient.invalidateQueries({ queryKey: ["/api/conversations"] });
+
+        if (attachments && attachments.length > 0) {
+          for (const att of attachments) {
+            if (!att.conversationId) {
+              await fetch(`/api/documents/${att.id}/link`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ conversationId: newConv.id }),
+              }).catch(() => {});
+            }
+          }
+        }
       } catch (error) {
         console.error("Failed to create conversation:", error);
         return;
@@ -243,7 +255,7 @@ export function ChatView({ conversationId, selectedPhase, onConversationCreated 
         </div>
       </ScrollArea>
 
-      <ChatInput onSend={handleSend} isLoading={isStreaming} />
+      <ChatInput onSend={handleSend} isLoading={isStreaming} conversationId={conversationId} />
     </div>
   );
 }
