@@ -337,10 +337,6 @@ export async function registerRoutes(
       }
 
       const userToken = req.session?.accessToken;
-      if (!userToken) {
-        return res.status(401).json({ error: "You must be signed in to use Copilot Studio bots" });
-      }
-
       const botResponse = await callCopilotBot(bot.botEndpoint, message, userToken);
 
       res.json({
