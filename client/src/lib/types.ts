@@ -49,3 +49,14 @@ export interface DoneEvent {
 }
 
 export type SSEEvent = RoutingEvent | ContentEvent | DoneEvent;
+
+export interface CopilotBot {
+  id: number;
+  name: string;
+  phaseId: string;
+  skillRole: string;
+  botEndpoint: string;
+  description: string | null;
+  isActive: boolean;
+  hasSecret: boolean;
+}
