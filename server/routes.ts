@@ -178,7 +178,20 @@ export async function registerRoutes(
           } else {
             res.write(`data: ${JSON.stringify({ type: "status", message: `Connecting to ${bot.name}...` })}\n\n`);
             try {
-              const userToken = req.session?.accessToken;
+              let userToken = req.session?.accessToken;
+              if (bot.botEndpoint?.includes("/copilotstudio/") && req.session?.user?.oid) {
+                try {
+                  const { acquirePowerPlatformToken, acquirePowerPlatformTokenViaClientCredentials } = await import("./auth");
+                  const ppToken = await acquirePowerPlatformToken(req.session.user.oid)
+                    || await acquirePowerPlatformTokenViaClientCredentials();
+                  if (ppToken) {
+                    userToken = ppToken;
+                    console.log("[routes] Acquired Power Platform token for DTE call");
+                  }
+                } catch (tokenErr) {
+                  console.warn("[routes] Could not acquire Power Platform token:", tokenErr);
+                }
+              }
               const botReply = await callCopilotBot(bot.botEndpoint, content, userToken, bot.botSecret);
               fullResponse = botReply;
             } catch (botError: any) {
