@@ -264,23 +264,25 @@ export default function Admin() {
                   <Label htmlFor="botEndpoint">Bot Endpoint URL *</Label>
                   <Input
                     id="botEndpoint"
-                    placeholder="https://directline.botframework.com/v3/directline/..."
+                    placeholder="https://...powervirtualagents/.../directline/token?api-version=..."
                     value={formData.botEndpoint}
                     onChange={e => setFormData(f => ({ ...f, botEndpoint: e.target.value }))}
                     data-testid="input-bot-endpoint"
                   />
+                  <p className="text-[10px] text-muted-foreground">Copilot Studio token endpoint URL (used when no secret is provided)</p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="botSecret">Bot Secret (optional)</Label>
+                  <Label htmlFor="botSecret">Direct Line Secret (recommended)</Label>
                   <Input
                     id="botSecret"
                     type="password"
-                    placeholder={editingBot ? "Leave blank to keep existing secret" : "Direct Line secret or API key"}
+                    placeholder={editingBot ? "Leave blank to keep existing secret" : "Paste Direct Line secret from Copilot Studio"}
                     value={formData.botSecret}
                     onChange={e => setFormData(f => ({ ...f, botSecret: e.target.value }))}
                     data-testid="input-bot-secret"
                   />
+                  <p className="text-[10px] text-muted-foreground">Copilot Studio → Settings → Channels → Direct Line → copy secret key</p>
                 </div>
 
                 <div className="space-y-2">
@@ -377,6 +379,9 @@ export default function Admin() {
                             <span className="text-sm font-medium truncate">{bot.name}</span>
                             <Badge variant={bot.isActive ? "default" : "secondary"} className="text-[10px]">
                               {bot.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                            <Badge variant={bot.hasSecret ? "default" : "outline"} className="text-[10px]">
+                              {bot.hasSecret ? "DL Secret" : "Token URL"}
                             </Badge>
                           </div>
                           <div className="flex items-center gap-2 mt-0.5">
