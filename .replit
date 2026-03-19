@@ -40,3 +40,8 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_openai_ai_integrations:2.0.0", "github:1.0.0"]
+
+[userenv]
+
+[userenv.development]
+AZURE_REDIRECT_URI = "https://73b5e027-a8ca-465b-973c-f932cc59d55d-00-309vb3m23nrjx.worf.replit.dev/api/auth/callback"
