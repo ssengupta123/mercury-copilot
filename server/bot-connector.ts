@@ -1,54 +1,68 @@
 const DIRECTLINE_BASE = "https://directline.botframework.com/v3/directline";
 
-interface DirectLineTokenResponse {
-  token: string;
-  expires_in: number;
-  conversationId: string;
-}
-
 interface DirectLineConversation {
   conversationId: string;
   token: string;
 }
 
-async function getDirectLineToken(botEndpoint: string): Promise<DirectLineTokenResponse> {
-  const response = await fetch(botEndpoint, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+const USER_ID = "mercury-copilot-user";
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Failed to get DirectLine token: ${response.status} ${errorText}`);
-  }
-
-  return response.json() as Promise<DirectLineTokenResponse>;
-}
-
-async function startDirectLineConversation(token: string): Promise<DirectLineConversation> {
+async function startConversationWithSecret(secret: string): Promise<DirectLineConversation> {
+  console.log(`[bot-connector] Starting conversation with Direct Line secret...`);
   const response = await fetch(`${DIRECTLINE_BASE}/conversations`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${secret}`,
       "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(`Failed to start DirectLine conversation: ${response.status} ${errorText}`);
+    throw new Error(`Failed to start DirectLine conversation with secret: ${response.status} ${errorText}`);
   }
 
   const data = await response.json();
   return {
     conversationId: data.conversationId,
-    token: data.token || token,
+    token: data.token || secret,
   };
 }
 
-const USER_ID = "mercury-copilot-user";
+async function startConversationWithTokenEndpoint(botEndpoint: string): Promise<DirectLineConversation> {
+  console.log(`[bot-connector] Getting token from endpoint...`);
+  const tokenResp = await fetch(botEndpoint, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+
+  if (!tokenResp.ok) {
+    const errorText = await tokenResp.text();
+    throw new Error(`Failed to get DirectLine token: ${tokenResp.status} ${errorText}`);
+  }
+
+  const tokenData = await tokenResp.json();
+  console.log(`[bot-connector] Got token, starting conversation...`);
+
+  const convResp = await fetch(`${DIRECTLINE_BASE}/conversations`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${tokenData.token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!convResp.ok) {
+    const errorText = await convResp.text();
+    throw new Error(`Failed to start DirectLine conversation: ${convResp.status} ${errorText}`);
+  }
+
+  const data = await convResp.json();
+  return {
+    conversationId: data.conversationId,
+    token: data.token || tokenData.token,
+  };
+}
 
 async function sendDirectLineActivity(
   conversationId: string,
@@ -111,7 +125,7 @@ async function pollDirectLineActivities(
     if (i === 0) {
       console.log(`[bot-connector] Poll ${i}: ${activities.length} activities, sentId=${sentActivityId}`);
       for (const a of activities) {
-        console.log(`[bot-connector]   activity id=${a.id} type=${a.type} from.id=${a.from?.id} from.role=${a.from?.role} text=${(a.text || "").substring(0, 60)}`);
+        console.log(`[bot-connector]   activity id=${a.id} type=${a.type} from.id=${a.from?.id} from.role=${a.from?.role} text=${(a.text || "").substring(0, 80)}`);
       }
     }
 
@@ -174,21 +188,32 @@ function parseCopilotError(text: string): { code: string; userMessage: string } 
       userMessage: "The configured Copilot Studio bot could not be found. Please verify the bot endpoint URL in the admin panel is correct and that the bot is published.",
     };
   }
+  if (text.includes("usage limit") || text.includes("currently unavailable")) {
+    return {
+      code: "UsageLimitReached",
+      userMessage: "The Copilot Studio bot reports it has reached its usage limit via DirectLine. This may be a channel-level restriction. Try configuring the bot with a Direct Line secret instead of the token endpoint URL. Go to Copilot Studio → Settings → Channels → Direct Line, copy the secret, and enter it in the admin panel.",
+    };
+  }
   return null;
 }
 
 export async function callCopilotBot(
   botEndpoint: string,
   message: string,
-  _userAccessToken?: string
+  _userAccessToken?: string,
+  botSecret?: string | null
 ): Promise<string> {
-  console.log(`[bot-connector] Calling Copilot bot at: ${botEndpoint.substring(0, 80)}...`);
+  console.log(`[bot-connector] Calling Copilot bot, hasSecret=${!!botSecret}, endpoint=${botEndpoint.substring(0, 80)}...`);
 
-  const tokenData = await getDirectLineToken(botEndpoint);
-  console.log(`[bot-connector] Got DirectLine token, conversationId: ${tokenData.conversationId}`);
+  let conversation: DirectLineConversation;
 
-  const conversation = await startDirectLineConversation(tokenData.token);
-  console.log(`[bot-connector] Started conversation: ${conversation.conversationId}`);
+  if (botSecret) {
+    conversation = await startConversationWithSecret(botSecret);
+  } else {
+    conversation = await startConversationWithTokenEndpoint(botEndpoint);
+  }
+
+  console.log(`[bot-connector] Conversation started: ${conversation.conversationId}`);
 
   const sentActivityId = await sendDirectLineActivity(conversation.conversationId, conversation.token, message);
   console.log(`[bot-connector] Sent message (activityId: ${sentActivityId}), polling for response...`);

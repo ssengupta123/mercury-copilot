@@ -170,7 +170,7 @@ export async function registerRoutes(
           res.write(`data: ${JSON.stringify({ type: "status", message: `Connecting to ${bot.name}...` })}\n\n`);
           try {
             const userToken = req.session?.accessToken;
-            const botReply = await callCopilotBot(bot.botEndpoint, content, userToken);
+            const botReply = await callCopilotBot(bot.botEndpoint, content, userToken, bot.botSecret);
             fullResponse = botReply;
           } catch (botError: any) {
             console.error("Error calling Copilot bot:", botError);
