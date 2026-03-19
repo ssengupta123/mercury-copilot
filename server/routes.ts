@@ -421,10 +421,12 @@ export async function registerRoutes(
     if (!ssoEnabled) return res.status(501).json({ error: "SSO not configured" });
     try {
       const { getMsalClient, SCOPES, getRedirectUri } = await import("./auth");
+      const isPopup = req.query.popup === "true";
       const authUrl = await getMsalClient().getAuthCodeUrl({
         scopes: SCOPES,
         redirectUri: getRedirectUri(),
         prompt: "select_account",
+        state: isPopup ? "popup" : undefined,
       });
       res.redirect(authUrl);
     } catch (error) {
@@ -449,7 +451,12 @@ export async function registerRoutes(
       };
       req.session.accessToken = tokenResponse.accessToken;
       req.session.idToken = tokenResponse.idToken;
-      res.redirect("/");
+      const popupClose = req.query.state === "popup";
+      if (popupClose) {
+        res.send(`<html><body><script>window.close();</script><p>Signed in. You may close this window.</p></body></html>`);
+      } else {
+        res.redirect("/");
+      }
     } catch (error) {
       console.error("Auth callback error:", error);
       res.redirect("/?error=auth_failed");
