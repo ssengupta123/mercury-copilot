@@ -41,21 +41,6 @@ BEGIN
     );
 END;
 
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_messages_conversation_id')
-BEGIN
-    CREATE INDEX IX_messages_conversation_id ON messages(conversation_id);
-END;
-
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_copilot_bots_phase_id')
-BEGIN
-    CREATE INDEX IX_copilot_bots_phase_id ON copilot_bots(phase_id);
-END;
-
-IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_copilot_bots_phase_role')
-BEGIN
-    CREATE INDEX IX_copilot_bots_phase_role ON copilot_bots(phase_id, skill_role);
-END;
-
 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'phase_configs')
 BEGIN
     CREATE TABLE phase_configs (
@@ -86,12 +71,69 @@ BEGIN
     );
 END;
 
+-- Indexes
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_messages_conversation_id')
+BEGIN
+    CREATE INDEX IX_messages_conversation_id ON messages(conversation_id);
+END;
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_copilot_bots_phase_id')
+BEGIN
+    CREATE INDEX IX_copilot_bots_phase_id ON copilot_bots(phase_id);
+END;
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_copilot_bots_phase_role')
+BEGIN
+    CREATE INDEX IX_copilot_bots_phase_role ON copilot_bots(phase_id, skill_role);
+END;
+
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_documents_conversation_id')
 BEGIN
     CREATE INDEX IX_documents_conversation_id ON documents(conversation_id);
 END;
 
+-- Column migrations for copilot_bots (safe to re-run)
 IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('copilot_bots') AND name = 'embed_url')
 BEGIN
     ALTER TABLE copilot_bots ADD embed_url NVARCHAR(MAX) NULL;
 END;
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('copilot_bots') AND name = 'bot_secret')
+BEGIN
+    ALTER TABLE copilot_bots ADD bot_secret NVARCHAR(MAX) NULL;
+END;
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('copilot_bots') AND name = 'description')
+BEGIN
+    ALTER TABLE copilot_bots ADD description NVARCHAR(MAX) NULL;
+END;
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('copilot_bots') AND name = 'is_active')
+BEGIN
+    ALTER TABLE copilot_bots ADD is_active BIT NOT NULL DEFAULT 1;
+END;
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('copilot_bots') AND name = 'bot_endpoint')
+BEGIN
+    ALTER TABLE copilot_bots ADD bot_endpoint NVARCHAR(MAX) NOT NULL DEFAULT '';
+END;
+
+-- Column migrations for messages
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('messages') AND name = 'agent_id')
+BEGIN
+    ALTER TABLE messages ADD agent_id NVARCHAR(255) NULL;
+END;
+
+-- Column migrations for conversations
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('conversations') AND name = 'active_agent')
+BEGIN
+    ALTER TABLE conversations ADD active_agent NVARCHAR(255) NULL;
+END;
+
+-- Column migrations for documents
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('documents') AND name = 'conversation_id')
+BEGIN
+    ALTER TABLE documents ADD conversation_id INT NULL;
+END;
+
+PRINT 'Mercury Copilot database schema is up to date.';
