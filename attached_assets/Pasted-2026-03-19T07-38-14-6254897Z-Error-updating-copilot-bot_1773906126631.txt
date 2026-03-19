@@ -1,0 +1,43 @@
+2026-03-19T07:38:14.6254897Z Error updating copilot bot: YU [RequestError]: Invalid column name 'embed_url'.
+2026-03-19T07:38:14.6255392Z     at S (/home/site/wwwroot/index.cjs:202:31643)
+2026-03-19T07:38:14.6255419Z     at a0.emit (node:events:519:28)
+2026-03-19T07:38:14.6255444Z     at a0.emit (/home/site/wwwroot/index.cjs:201:311502)
+2026-03-19T07:38:14.6255467Z     at p$.onErrorMessage (/home/site/wwwroot/index.cjs:201:285290)
+2026-03-19T07:38:14.6255489Z     at Readable.<anonymous> (/home/site/wwwroot/index.cjs:201:268914)
+2026-03-19T07:38:14.6255511Z     at Readable.emit (node:events:519:28)
+2026-03-19T07:38:14.6255533Z     at addChunk (node:internal/streams/readable:561:12)
+2026-03-19T07:38:14.6255557Z     at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+2026-03-19T07:38:14.6255579Z     at Readable.push (node:internal/streams/readable:393:5)
+2026-03-19T07:38:14.6255601Z     at nextAsync (node:internal/streams/from:194:22) {
+2026-03-19T07:38:14.625565Z   code: 'EREQUEST',
+2026-03-19T07:38:14.6255673Z   originalError: Error: Invalid column name 'embed_url'.
+2026-03-19T07:38:14.6255694Z       at S (/home/site/wwwroot/index.cjs:202:31608)
+2026-03-19T07:38:14.6255873Z       at a0.emit (node:events:519:28)
+2026-03-19T07:38:14.6255903Z       at a0.emit (/home/site/wwwroot/index.cjs:201:311502)
+2026-03-19T07:38:14.6255925Z       at p$.onErrorMessage (/home/site/wwwroot/index.cjs:201:285290)
+2026-03-19T07:38:14.6255946Z       at Readable.<anonymous> (/home/site/wwwroot/index.cjs:201:268914)
+2026-03-19T07:38:14.6255966Z       at Readable.emit (node:events:519:28)
+2026-03-19T07:38:14.6255986Z       at addChunk (node:internal/streams/readable:561:12)
+2026-03-19T07:38:14.6256007Z       at readableAddChunkPushObjectMode (node:internal/streams/readable:538:3)
+2026-03-19T07:38:14.6256029Z       at Readable.push (node:internal/streams/readable:393:5)
+2026-03-19T07:38:14.625607Z       at nextAsync (node:internal/streams/from:194:22) {
+2026-03-19T07:38:14.6256089Z     info: SF {
+2026-03-19T07:38:14.6256108Z       name: 'ERROR',
+2026-03-19T07:38:14.6256128Z       handlerName: 'onErrorMessage',
+2026-03-19T07:38:14.6256146Z       number: 207,
+2026-03-19T07:38:14.6256165Z       state: 1,
+2026-03-19T07:38:14.6256184Z       class: 16,
+2026-03-19T07:38:14.6256204Z       message: "Invalid column name 'embed_url'.",
+2026-03-19T07:38:14.6256225Z       serverName: 'financehubserver',
+2026-03-19T07:38:14.6256244Z       procName: '',
+2026-03-19T07:38:14.6256262Z       lineNumber: 2
+2026-03-19T07:38:14.6256281Z     }
+2026-03-19T07:38:14.6256321Z   },
+2026-03-19T07:38:14.625634Z   number: 207,
+2026-03-19T07:38:14.6256359Z   lineNumber: 2,
+2026-03-19T07:38:14.6256377Z   state: 1,
+2026-03-19T07:38:14.6256396Z   class: 16,
+2026-03-19T07:38:14.6256416Z   serverName: 'financehubserver',
+2026-03-19T07:38:14.6256606Z   procName: '',
+2026-03-19T07:38:14.6256627Z   precedingErrors: []
+2026-03-19T07:38:14.6256646Z }
