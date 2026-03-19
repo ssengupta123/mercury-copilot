@@ -168,14 +168,14 @@ export async function registerRoutes(
         if (activeBots.length > 0) {
           const bot = activeBots[0];
 
-          if (bot.embedUrl) {
+          if (!bot.botEndpoint && bot.embedUrl) {
             res.write(`data: ${JSON.stringify({
               type: "embed",
               embedUrl: bot.embedUrl,
               botName: bot.name,
             })}\n\n`);
             fullResponse = `[Embedded conversation with ${bot.name}]`;
-          } else {
+          } else if (bot.botEndpoint) {
             res.write(`data: ${JSON.stringify({ type: "status", message: `Connecting to ${bot.name}...` })}\n\n`);
             try {
               let userToken = req.session?.accessToken;
