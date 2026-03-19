@@ -11,6 +11,15 @@ function isCopilotStudioDTE(endpoint: string): boolean {
   return endpoint.includes("/copilotstudio/") || endpoint.includes("/conversations?api-version=");
 }
 
+function deriveDLTokenUrl(dteEndpoint: string): string | null {
+  const botIdMatch = dteEndpoint.match(/\/bots\/([^/]+)\//);
+  const baseMatch = dteEndpoint.match(/^(https:\/\/[^/]+)/);
+  const apiVersionMatch = dteEndpoint.match(/api-version=([^&]+)/);
+  if (!botIdMatch || !baseMatch) return null;
+  const apiVersion = apiVersionMatch ? apiVersionMatch[1] : "2022-03-01-preview";
+  return `${baseMatch[1]}/powervirtualagents/botsbyschema/${botIdMatch[1]}/directline/token?api-version=${apiVersion}`;
+}
+
 async function callViaCopilotStudioDTE(endpoint: string, message: string, accessToken?: string): Promise<string> {
   console.log(`[bot-connector] Using Copilot Studio Conversations API (DTE), hasToken=${!!accessToken}...`);
 
@@ -314,15 +323,29 @@ export async function callCopilotBot(
       return await callViaCopilotStudioDTE(botEndpoint, message, userAccessToken);
     } catch (dteError: any) {
       const errMsg = dteError?.message || "";
-      if (errMsg.includes("401") && botSecret) {
-        console.warn(`[bot-connector] DTE returned 401 (no SSO token available), falling back to DirectLine with secret...`);
-        const conversation = await startConversationWithSecret(botSecret);
-        console.log(`[bot-connector] DirectLine fallback conversation started: ${conversation.conversationId}`);
-        const sentActivityId = await sendDirectLineActivity(conversation.conversationId, conversation.token, message);
-        console.log(`[bot-connector] Sent message (activityId: ${sentActivityId}), polling for response...`);
-        const response = await pollDirectLineActivities(conversation.conversationId, conversation.token, sentActivityId);
-        console.log(`[bot-connector] Got response (${response.length} chars)`);
-        return response;
+      const isAuthError = errMsg.includes("401") || errMsg.includes("403");
+      if (isAuthError) {
+        if (botSecret) {
+          console.warn(`[bot-connector] DTE auth failed, falling back to DirectLine with secret...`);
+          const conversation = await startConversationWithSecret(botSecret);
+          console.log(`[bot-connector] DirectLine fallback conversation started: ${conversation.conversationId}`);
+          const sentActivityId = await sendDirectLineActivity(conversation.conversationId, conversation.token, message);
+          console.log(`[bot-connector] Sent message (activityId: ${sentActivityId}), polling for response...`);
+          const response = await pollDirectLineActivities(conversation.conversationId, conversation.token, sentActivityId);
+          console.log(`[bot-connector] Got response (${response.length} chars)`);
+          return response;
+        }
+        const dlTokenUrl = deriveDLTokenUrl(botEndpoint);
+        if (dlTokenUrl) {
+          console.warn(`[bot-connector] DTE auth failed, falling back to DirectLine token endpoint...`);
+          const conversation = await startConversationWithTokenEndpoint(dlTokenUrl);
+          console.log(`[bot-connector] DirectLine fallback conversation started: ${conversation.conversationId}`);
+          const sentActivityId = await sendDirectLineActivity(conversation.conversationId, conversation.token, message);
+          console.log(`[bot-connector] Sent message (activityId: ${sentActivityId}), polling for response...`);
+          const response = await pollDirectLineActivities(conversation.conversationId, conversation.token, sentActivityId);
+          console.log(`[bot-connector] Got response (${response.length} chars)`);
+          return response;
+        }
       }
       throw dteError;
     }
