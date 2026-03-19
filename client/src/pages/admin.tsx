@@ -397,8 +397,8 @@ export default function Admin() {
                             <Badge variant={bot.isActive ? "default" : "secondary"} className="text-[10px]">
                               {bot.isActive ? "Active" : "Inactive"}
                             </Badge>
-                            <Badge variant={bot.hasEmbed ? "default" : "outline"} className="text-[10px]">
-                              {bot.hasEmbed ? "Embedded" : bot.hasSecret ? "DL Secret" : "Token URL"}
+                            <Badge variant={bot.botEndpoint?.includes("/copilotstudio/") ? "default" : "outline"} className="text-[10px]">
+                              {bot.botEndpoint?.includes("/copilotstudio/") ? "Agents SDK" : bot.hasSecret ? "DL Secret" : "Token URL"}
                             </Badge>
                           </div>
                           <div className="flex items-center gap-2 mt-0.5">
