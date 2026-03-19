@@ -13,32 +13,13 @@ interface AuthState {
   ssoEnabled: boolean;
 }
 
+let pollTimer: ReturnType<typeof setInterval> | null = null;
+
 export function useAuth() {
   const { data, isLoading } = useQuery<AuthState>({
     queryKey: ["/api/auth/me"],
     retry: false,
   });
-
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const login = useCallback(() => {
-    const isInIframe = window.self !== window.top;
-
-    if (isInIframe) {
-      const popup = window.open("/api/auth/login?popup=true", "mercury-sso", "width=500,height=700,popup=yes");
-
-      if (pollRef.current) clearInterval(pollRef.current);
-      pollRef.current = setInterval(() => {
-        if (popup?.closed) {
-          if (pollRef.current) clearInterval(pollRef.current);
-          pollRef.current = null;
-          queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-        }
-      }, 500);
-    } else {
-      window.location.href = "/api/auth/login";
-    }
-  }, []);
 
   const logout = useMutation({
     mutationFn: () => apiRequest("POST", "/api/auth/logout"),
@@ -47,6 +28,25 @@ export function useAuth() {
       window.location.href = "/";
     },
   });
+
+  const login = useCallback(() => {
+    const isInIframe = window.self !== window.top;
+
+    if (isInIframe) {
+      const popup = window.open("/api/auth/login?popup=true", "mercury-sso", "width=500,height=700,popup=yes");
+
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(() => {
+        if (popup?.closed) {
+          if (pollTimer) clearInterval(pollTimer);
+          pollTimer = null;
+          queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+        }
+      }, 500);
+    } else {
+      window.location.href = "/api/auth/login";
+    }
+  }, []);
 
   return {
     user: data?.user,
