@@ -167,13 +167,21 @@ export async function registerRoutes(
 
         if (activeBots.length > 0) {
           const bot = activeBots[0];
+          res.write(`data: ${JSON.stringify({ type: "status", message: `Connecting to ${bot.name}...` })}\n\n`);
           try {
             const userToken = req.session?.accessToken;
             const botReply = await callCopilotBot(bot.botEndpoint, content, userToken);
             fullResponse = botReply;
-          } catch (botError) {
+          } catch (botError: any) {
             console.error("Error calling Copilot bot:", botError);
-            fullResponse = `Sorry, I encountered an issue connecting to the specialist agent (${bot.name}). Please try again later.`;
+            const errMsg = botError?.message || "";
+            if (errMsg.includes("Failed to get DirectLine token")) {
+              fullResponse = `Could not connect to the Copilot Studio bot "${bot.name}". The bot endpoint may be incorrect or the bot may not be published. Please verify the endpoint URL in the admin panel.`;
+            } else if (errMsg.includes("Failed to start DirectLine conversation")) {
+              fullResponse = `Connected to Copilot Studio but failed to start a conversation with "${bot.name}". The DirectLine token may have expired or the bot may be unavailable.`;
+            } else {
+              fullResponse = `Sorry, I encountered an issue connecting to the specialist agent "${bot.name}". Please try again later or contact your administrator.`;
+            }
           }
           res.write(`data: ${JSON.stringify({ type: "content", content: fullResponse })}\n\n`);
         } else {

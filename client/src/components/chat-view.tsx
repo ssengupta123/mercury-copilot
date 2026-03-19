@@ -22,6 +22,7 @@ export function ChatView({ conversationId, selectedPhase, onConversationCreated 
   const [streamingAgentId, setStreamingAgentId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [routingInfo, setRoutingInfo] = useState<{ agentName: string; greeting: string } | null>(null);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { data: agents = [] } = useQuery<Agent[]>({
@@ -109,6 +110,7 @@ export function ChatView({ conversationId, selectedPhase, onConversationCreated 
     setStreamingContent("");
     setStreamingAgentId(null);
     setRoutingInfo(null);
+    setStatusMessage(null);
 
     try {
       const response = await fetch(`/api/conversations/${targetConvId}/messages`, {
@@ -147,7 +149,10 @@ export function ChatView({ conversationId, selectedPhase, onConversationCreated 
                 agentName: event.agentName,
                 greeting: event.greeting,
               });
+            } else if (event.type === "status") {
+              setStatusMessage(event.message);
             } else if (event.type === "content") {
+              setStatusMessage(null);
               fullContent += event.content;
               setStreamingContent(fullContent);
             } else if (event.type === "done") {
@@ -226,7 +231,7 @@ export function ChatView({ conversationId, selectedPhase, onConversationCreated 
               {isStreaming && routingInfo && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground px-11" data-testid="routing-indicator">
                   <Loader2 className="w-3 h-3 animate-spin" />
-                  <span>{routingInfo.greeting}</span>
+                  <span>{statusMessage || routingInfo.greeting}</span>
                 </div>
               )}
 
