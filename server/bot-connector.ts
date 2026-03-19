@@ -159,7 +159,9 @@ async function pollDirectLineActivities(
         const knownError = parseCopilotError(fullText);
         if (knownError) {
           console.warn(`[bot-connector] Copilot Studio error detected: ${knownError.code}`);
-          return knownError.userMessage;
+          if (knownError.userMessage) {
+            return knownError.userMessage;
+          }
         }
         return fullText;
       }
@@ -191,7 +193,7 @@ function parseCopilotError(text: string): { code: string; userMessage: string } 
   if (text.includes("usage limit") || text.includes("currently unavailable")) {
     return {
       code: "UsageLimitReached",
-      userMessage: "The Copilot Studio bot reports it has reached its usage limit via DirectLine. This may be a channel-level restriction. Try configuring the bot with a Direct Line secret instead of the token endpoint URL. Go to Copilot Studio → Settings → Channels → Direct Line, copy the secret, and enter it in the admin panel.",
+      userMessage: "",
     };
   }
   return null;
