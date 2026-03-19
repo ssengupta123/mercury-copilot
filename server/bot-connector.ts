@@ -48,11 +48,13 @@ async function startDirectLineConversation(token: string): Promise<DirectLineCon
   };
 }
 
+const USER_ID = "mercury-copilot-user";
+
 async function sendDirectLineActivity(
   conversationId: string,
   token: string,
   message: string
-): Promise<void> {
+): Promise<string> {
   const response = await fetch(
     `${DIRECTLINE_BASE}/conversations/${conversationId}/activities`,
     {
@@ -63,7 +65,7 @@ async function sendDirectLineActivity(
       },
       body: JSON.stringify({
         type: "message",
-        from: { id: "user", name: "User" },
+        from: { id: USER_ID, name: "User" },
         text: message,
       }),
     }
@@ -73,11 +75,15 @@ async function sendDirectLineActivity(
     const errorText = await response.text();
     throw new Error(`Failed to send activity: ${response.status} ${errorText}`);
   }
+
+  const data = await response.json();
+  return data.id || "";
 }
 
 async function pollDirectLineActivities(
   conversationId: string,
   token: string,
+  sentActivityId: string,
   maxAttempts = 30
 ): Promise<string> {
   let watermark: string | undefined;
@@ -102,15 +108,23 @@ async function pollDirectLineActivities(
     watermark = data.watermark;
     const activities = data.activities || [];
 
+    if (i === 0) {
+      console.log(`[bot-connector] Poll ${i}: ${activities.length} activities, sentId=${sentActivityId}`);
+      for (const a of activities) {
+        console.log(`[bot-connector]   activity id=${a.id} type=${a.type} from.id=${a.from?.id} from.role=${a.from?.role} text=${(a.text || "").substring(0, 60)}`);
+      }
+    }
+
     const botMessages = activities.filter(
       (a: any) =>
         a.type === "message" &&
-        a.from?.id !== "user" &&
-        a.from?.id !== undefined
+        a.from?.id !== USER_ID &&
+        a.id !== sentActivityId
     );
 
     if (botMessages.length > 0) {
       const lastMessage = botMessages[botMessages.length - 1];
+      console.log(`[bot-connector] Bot message from: ${lastMessage.from?.id}, role: ${lastMessage.from?.role}`);
       const text = lastMessage.text || "";
       const attachmentText = (lastMessage.attachments || [])
         .map((att: any) => {
@@ -176,10 +190,10 @@ export async function callCopilotBot(
   const conversation = await startDirectLineConversation(tokenData.token);
   console.log(`[bot-connector] Started conversation: ${conversation.conversationId}`);
 
-  await sendDirectLineActivity(conversation.conversationId, conversation.token, message);
-  console.log(`[bot-connector] Sent message, polling for response...`);
+  const sentActivityId = await sendDirectLineActivity(conversation.conversationId, conversation.token, message);
+  console.log(`[bot-connector] Sent message (activityId: ${sentActivityId}), polling for response...`);
 
-  const response = await pollDirectLineActivities(conversation.conversationId, conversation.token);
+  const response = await pollDirectLineActivities(conversation.conversationId, conversation.token, sentActivityId);
   console.log(`[bot-connector] Got response (${response.length} chars)`);
 
   return response;
