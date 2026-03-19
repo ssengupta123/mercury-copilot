@@ -120,12 +120,13 @@ export class MssqlStorage implements IStorage {
       .input("skillRole", sql.NVarChar, data.skillRole)
       .input("botEndpoint", sql.NVarChar, data.botEndpoint)
       .input("botSecret", sql.NVarChar, data.botSecret || null)
+      .input("embedUrl", sql.NVarChar, data.embedUrl || null)
       .input("description", sql.NVarChar, data.description || null)
       .input("isActive", sql.Bit, data.isActive !== undefined ? data.isActive : true)
       .query(`
-        INSERT INTO copilot_bots (name, phase_id, skill_role, bot_endpoint, bot_secret, description, is_active, created_at, updated_at)
+        INSERT INTO copilot_bots (name, phase_id, skill_role, bot_endpoint, bot_secret, embed_url, description, is_active, created_at, updated_at)
         OUTPUT INSERTED.*
-        VALUES (@name, @phaseId, @skillRole, @botEndpoint, @botSecret, @description, @isActive, GETUTCDATE(), GETUTCDATE())
+        VALUES (@name, @phaseId, @skillRole, @botEndpoint, @botSecret, @embedUrl, @description, @isActive, GETUTCDATE(), GETUTCDATE())
       `);
     return this.mapCopilotBot(result.recordset[0])!;
   }
@@ -154,6 +155,10 @@ export class MssqlStorage implements IStorage {
     if (data.botSecret !== undefined) {
       setClauses.push("bot_secret = @botSecret");
       request.input("botSecret", sql.NVarChar, data.botSecret);
+    }
+    if (data.embedUrl !== undefined) {
+      setClauses.push("embed_url = @embedUrl");
+      request.input("embedUrl", sql.NVarChar, data.embedUrl);
     }
     if (data.description !== undefined) {
       setClauses.push("description = @description");
@@ -312,6 +317,7 @@ export class MssqlStorage implements IStorage {
       skillRole: row.skill_role,
       botEndpoint: row.bot_endpoint,
       botSecret: row.bot_secret,
+      embedUrl: row.embed_url,
       description: row.description,
       isActive: row.is_active,
       createdAt: row.created_at,

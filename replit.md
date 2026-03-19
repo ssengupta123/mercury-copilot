@@ -59,8 +59,10 @@ Mercury Copilot is an AI-powered chatbot for Reason Group's Mercury Method — a
 
 ## Key Features
 - Keyword-based message routing to Mercury phase agents
-- Direct routing to Copilot Studio bots via DirectLine API when assigned to phase; "no specialist agent available" when not
-- Real-time status updates ("Connecting to...") while calling external bots
+- Direct routing to Copilot Studio bots when assigned to phase; "no specialist agent available" when not
+- Two bot integration modes: (1) Embed URL — bot webchat embedded seamlessly in chat area, (2) DirectLine API — bot called via API with responses streamed
+- When embed URL is set, the bot's own webchat fills the chat area (no API rate limits); otherwise falls back to DirectLine API
+- Real-time status updates ("Connecting to...") while calling external bots via API
 - Actionable error messages for common Copilot Studio configuration issues
 - File upload (up to 10MB) — paperclip icon in chat input, stored on disk
 - Phase configuration admin page (/admin/phases) — edit prompts, deliverables, keywords per phase
@@ -96,7 +98,7 @@ Dual database support — auto-detected by environment variable:
 Tables:
 - `conversations` - id, title, active_agent, created_at, updated_at
 - `messages` - id, conversation_id, role, content, agent_id, created_at
-- `copilot_bots` - id, name, phase_id, skill_role, bot_endpoint, bot_secret, description, is_active, created_at, updated_at
+- `copilot_bots` - id, name, phase_id, skill_role, bot_endpoint, bot_secret, embed_url, description, is_active, created_at, updated_at
 - `phase_configs` - id, phase_id (unique), system_prompt, deliverables (array), keywords (array), description, week_range, updated_at
 - `documents` - id, conversation_id, filename, original_name, mime_type, size, created_at
 

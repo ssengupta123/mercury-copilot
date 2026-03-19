@@ -30,6 +30,8 @@ interface CopilotBot {
   skillRole: string;
   botEndpoint: string;
   hasSecret: boolean;
+  hasEmbed: boolean;
+  embedUrl: string | null;
   description: string | null;
   isActive: boolean;
   createdAt: string;
@@ -60,6 +62,7 @@ export default function Admin() {
     skillRole: "",
     botEndpoint: "",
     botSecret: "",
+    embedUrl: "",
     description: "",
     isActive: true,
   });
@@ -77,6 +80,7 @@ export default function Admin() {
       await apiRequest("POST", "/api/admin/copilot-bots", {
         ...data,
         botSecret: data.botSecret || null,
+        embedUrl: data.embedUrl || null,
         description: data.description || null,
       });
     },
@@ -130,7 +134,7 @@ export default function Admin() {
   const resetForm = () => {
     setShowForm(false);
     setEditingBot(null);
-    setFormData({ name: "", phaseId: "", skillRole: "", botEndpoint: "", botSecret: "", description: "", isActive: true });
+    setFormData({ name: "", phaseId: "", skillRole: "", botEndpoint: "", botSecret: "", embedUrl: "", description: "", isActive: true });
   };
 
   const startEdit = (bot: CopilotBot) => {
@@ -141,6 +145,7 @@ export default function Admin() {
       skillRole: bot.skillRole,
       botEndpoint: bot.botEndpoint,
       botSecret: "",
+      embedUrl: bot.embedUrl || "",
       description: bot.description || "",
       isActive: bot.isActive,
     });
@@ -149,8 +154,8 @@ export default function Admin() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.phaseId || !formData.skillRole || !formData.botEndpoint) {
-      toast({ title: "Validation error", description: "Please fill in all required fields.", variant: "destructive" });
+    if (!formData.name || !formData.phaseId || !formData.skillRole || (!formData.botEndpoint && !formData.embedUrl)) {
+      toast({ title: "Validation error", description: "Please fill in all required fields. Either an Embed URL or Bot Endpoint URL is required.", variant: "destructive" });
       return;
     }
     if (editingBot) {
@@ -286,6 +291,18 @@ export default function Admin() {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="embedUrl">Embed URL (recommended)</Label>
+                  <Input
+                    id="embedUrl"
+                    placeholder="https://copilotstudio.microsoft.com/environments/.../bots/.../webchat?__version__=2"
+                    value={formData.embedUrl}
+                    onChange={e => setFormData(f => ({ ...f, embedUrl: e.target.value }))}
+                    data-testid="input-embed-url"
+                  />
+                  <p className="text-[10px] text-muted-foreground">Copilot Studio → Channels → Custom Website → copy embed URL. When set, the bot chat is embedded directly instead of using the API.</p>
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="isActive">Status</Label>
                   <div className="flex items-center gap-2 pt-1">
                     <Switch
@@ -380,8 +397,8 @@ export default function Admin() {
                             <Badge variant={bot.isActive ? "default" : "secondary"} className="text-[10px]">
                               {bot.isActive ? "Active" : "Inactive"}
                             </Badge>
-                            <Badge variant={bot.hasSecret ? "default" : "outline"} className="text-[10px]">
-                              {bot.hasSecret ? "DL Secret" : "Token URL"}
+                            <Badge variant={bot.hasEmbed ? "default" : "outline"} className="text-[10px]">
+                              {bot.hasEmbed ? "Embedded" : bot.hasSecret ? "DL Secret" : "Token URL"}
                             </Badge>
                           </div>
                           <div className="flex items-center gap-2 mt-0.5">
