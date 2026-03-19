@@ -59,7 +59,9 @@ Mercury Copilot is an AI-powered chatbot for Reason Group's Mercury Method — a
 
 ## Key Features
 - Keyword-based message routing to Mercury phase agents
-- Direct routing to Copilot Studio bots when assigned to phase; "no specialist agent available" when not
+- Direct routing to Copilot Studio bots via DirectLine API when assigned to phase; "no specialist agent available" when not
+- Real-time status updates ("Connecting to...") while calling external bots
+- Actionable error messages for common Copilot Studio configuration issues
 - File upload (up to 10MB) — paperclip icon in chat input, stored on disk
 - Phase configuration admin page (/admin/phases) — edit prompts, deliverables, keywords per phase
 - Admin bot panel (/admin) for registering Microsoft Copilot Studio bots per phase and skill role
@@ -82,7 +84,7 @@ Mercury Copilot is an AI-powered chatbot for Reason Group's Mercury Method — a
 - Express + TypeScript (backend)
 - PostgreSQL + Drizzle ORM (dev database, Replit)
 - Azure SQL + mssql package (production database, Azure)
-- Microsoft Copilot Studio (specialist bot responses via Dataverse API)
+- Microsoft Copilot Studio (specialist bot responses via DirectLine API)
 - Tailwind CSS + shadcn/ui (styling)
 - TanStack Query (data fetching)
 
