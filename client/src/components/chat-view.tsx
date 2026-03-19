@@ -23,6 +23,7 @@ export function ChatView({ conversationId, selectedPhase, onConversationCreated 
   const [isStreaming, setIsStreaming] = useState(false);
   const [routingInfo, setRoutingInfo] = useState<{ agentName: string; greeting: string } | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [embedInfo, setEmbedInfo] = useState<{ url: string; botName: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { data: agents = [] } = useQuery<Agent[]>({
@@ -44,6 +45,10 @@ export function ChatView({ conversationId, selectedPhase, onConversationCreated 
       }
     }
   }, []);
+
+  useEffect(() => {
+    setEmbedInfo(null);
+  }, [conversationId]);
 
   useEffect(() => {
     scrollToBottom();
@@ -111,6 +116,7 @@ export function ChatView({ conversationId, selectedPhase, onConversationCreated 
     setStreamingAgentId(null);
     setRoutingInfo(null);
     setStatusMessage(null);
+    setEmbedInfo(null);
 
     try {
       const response = await fetch(`/api/conversations/${targetConvId}/messages`, {
@@ -151,6 +157,12 @@ export function ChatView({ conversationId, selectedPhase, onConversationCreated 
               });
             } else if (event.type === "status") {
               setStatusMessage(event.message);
+            } else if (event.type === "embed") {
+              setStatusMessage(null);
+              setIsStreaming(false);
+              setStreamingContent("");
+              setRoutingInfo(null);
+              setEmbedInfo({ url: event.embedUrl, botName: event.botName });
             } else if (event.type === "content") {
               setStatusMessage(null);
               fullContent += event.content;
@@ -199,6 +211,30 @@ export function ChatView({ conversationId, selectedPhase, onConversationCreated 
   const activeAgent = conversation?.activeAgent
     ? agents.find(a => a.id === conversation.activeAgent)
     : null;
+
+  if (embedInfo) {
+    return (
+      <div className="flex flex-col h-full">
+        {activeAgent && (
+          <div className="px-4 py-2 border-b border-border bg-card/50 flex items-center gap-2">
+            <AgentIcon icon={activeAgent.icon} className="w-4 h-4" color={activeAgent.color} />
+            <span className="text-sm font-medium">{activeAgent.name}</span>
+            <Badge variant="secondary" className="text-[10px]">{activeAgent.phase} · {activeAgent.weekRange}</Badge>
+            <span className="text-xs text-muted-foreground ml-auto">{embedInfo.botName}</span>
+          </div>
+        )}
+        <div className="flex-1 relative" data-testid="bot-embed-container">
+          <iframe
+            src={embedInfo.url}
+            className="absolute inset-0 w-full h-full border-0"
+            title={`Chat with ${embedInfo.botName}`}
+            allow="microphone; camera"
+            data-testid="bot-embed-iframe"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full">

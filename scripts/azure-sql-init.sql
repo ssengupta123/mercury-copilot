@@ -33,6 +33,7 @@ BEGIN
         skill_role NVARCHAR(255) NOT NULL,
         bot_endpoint NVARCHAR(MAX) NOT NULL,
         bot_secret NVARCHAR(MAX) NULL,
+        embed_url NVARCHAR(MAX) NULL,
         description NVARCHAR(MAX) NULL,
         is_active BIT NOT NULL DEFAULT 1,
         created_at DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
@@ -88,4 +89,9 @@ END;
 IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_documents_conversation_id')
 BEGIN
     CREATE INDEX IX_documents_conversation_id ON documents(conversation_id);
+END;
+
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('copilot_bots') AND name = 'embed_url')
+BEGIN
+    ALTER TABLE copilot_bots ADD embed_url NVARCHAR(MAX) NULL;
 END;
