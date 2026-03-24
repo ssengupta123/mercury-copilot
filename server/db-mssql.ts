@@ -9,12 +9,26 @@ export function getPool(): Promise<sql.ConnectionPool> {
     if (!connStr) {
       throw new Error("AZURE_SQL_CONNECTION_STRING must be set for Azure SQL.");
     }
-    poolPromise = new sql.ConnectionPool(connStr).connect().then(async (pool) => {
+    const config: sql.config = {
+      ...sql.ConnectionPool.parseConnectionString(connStr) as sql.config,
+      connectionTimeout: 30000,
+      requestTimeout: 30000,
+      options: {
+        encrypt: true,
+        trustServerCertificate: false,
+      },
+    };
+    poolPromise = new sql.ConnectionPool(config).connect().then(async (pool) => {
+      console.log("[db-mssql] Connected to Azure SQL successfully");
       if (!migrationsRun) {
         migrationsRun = true;
         await runMigrations(pool);
       }
       return pool;
+    }).catch((err) => {
+      console.error("[db-mssql] Failed to connect to Azure SQL:", err.message);
+      poolPromise = null;
+      throw err;
     });
   }
   return poolPromise;
