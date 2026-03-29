@@ -1,6 +1,6 @@
 import type {
-  Conversation, Message, CopilotBot, PhaseConfig, Document,
-  InsertConversation, InsertMessage, InsertCopilotBot, InsertPhaseConfig, InsertDocument
+  Conversation, Message, CopilotBot, PhaseConfig, Document, PhaseDeliverableTile,
+  InsertConversation, InsertMessage, InsertCopilotBot, InsertPhaseConfig, InsertDocument, InsertPhaseDeliverableTile
 } from "@shared/schema";
 
 export interface IStorage {
@@ -28,6 +28,12 @@ export interface IStorage {
   getDocument(id: number): Promise<Document | undefined>;
   getDocumentsByConversation(conversationId: number): Promise<Document[]>;
   linkDocumentToConversation(id: number, conversationId: number): Promise<void>;
+
+  getDeliverableTilesByPhase(phaseId: string): Promise<PhaseDeliverableTile[]>;
+  getAllDeliverableTiles(): Promise<PhaseDeliverableTile[]>;
+  createDeliverableTile(data: InsertPhaseDeliverableTile): Promise<PhaseDeliverableTile>;
+  updateDeliverableTile(id: number, data: Partial<InsertPhaseDeliverableTile>): Promise<PhaseDeliverableTile | undefined>;
+  deleteDeliverableTile(id: number): Promise<void>;
 }
 
 let storageInstance: IStorage | null = null;
@@ -72,6 +78,11 @@ class StorageProxy implements IStorage {
   async getDocument(id: number) { return (await this.getStorage()).getDocument(id); }
   async getDocumentsByConversation(conversationId: number) { return (await this.getStorage()).getDocumentsByConversation(conversationId); }
   async linkDocumentToConversation(id: number, conversationId: number) { return (await this.getStorage()).linkDocumentToConversation(id, conversationId); }
+  async getDeliverableTilesByPhase(phaseId: string) { return (await this.getStorage()).getDeliverableTilesByPhase(phaseId); }
+  async getAllDeliverableTiles() { return (await this.getStorage()).getAllDeliverableTiles(); }
+  async createDeliverableTile(data: InsertPhaseDeliverableTile) { return (await this.getStorage()).createDeliverableTile(data); }
+  async updateDeliverableTile(id: number, data: Partial<InsertPhaseDeliverableTile>) { return (await this.getStorage()).updateDeliverableTile(id, data); }
+  async deleteDeliverableTile(id: number) { return (await this.getStorage()).deleteDeliverableTile(id); }
 }
 
 export const storage: IStorage = new StorageProxy();

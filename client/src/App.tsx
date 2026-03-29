@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import Admin from "@/pages/admin";
 import PhaseConfig from "@/pages/phase-config";
+import DeliverableConfig from "@/pages/deliverable-config";
 
 function Router() {
   return (
@@ -15,6 +16,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/admin" component={Admin} />
       <Route path="/admin/phases" component={PhaseConfig} />
+      <Route path="/admin/deliverables" component={DeliverableConfig} />
       <Route component={NotFound} />
     </Switch>
   );

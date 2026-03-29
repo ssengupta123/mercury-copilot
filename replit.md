@@ -21,6 +21,7 @@ Mercury Copilot is an AI-powered chatbot for Reason Group's Mercury Method — a
 - **client/src/pages/home.tsx** - Main page with sidebar + chat layout
 - **client/src/pages/admin.tsx** - Admin panel for bot configuration
 - **client/src/pages/phase-config.tsx** - Phase configuration editor (prompts, deliverables, keywords)
+- **client/src/pages/deliverable-config.tsx** - Deliverable tile editor (prompt tiles shown per phase)
 - **client/src/components/chat-view.tsx** - Chat view with SSE streaming support
 - **client/src/components/chat-sidebar.tsx** - Sidebar with Reason Group logo, conversations, and Mercury phases
 - **client/src/components/chat-input.tsx** - Chat input with keyboard shortcuts and file upload

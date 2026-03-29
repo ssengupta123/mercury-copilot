@@ -136,4 +136,25 @@ BEGIN
     ALTER TABLE documents ADD conversation_id INT NULL;
 END;
 
+-- Phase Deliverable Tiles table
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'phase_deliverable_tiles')
+BEGIN
+    CREATE TABLE phase_deliverable_tiles (
+        id INT IDENTITY(1,1) PRIMARY KEY,
+        phase_id NVARCHAR(255) NOT NULL,
+        sub_phase NVARCHAR(255) NOT NULL,
+        label NVARCHAR(500) NOT NULL,
+        prompt_text NVARCHAR(MAX) NOT NULL,
+        optional BIT NOT NULL DEFAULT 0,
+        sort_order INT NOT NULL DEFAULT 0,
+        created_at DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+        updated_at DATETIME2 NOT NULL DEFAULT GETUTCDATE()
+    );
+END;
+
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_deliverable_tiles_phase_id')
+BEGIN
+    CREATE INDEX IX_deliverable_tiles_phase_id ON phase_deliverable_tiles(phase_id);
+END;
+
 PRINT 'Mercury Copilot database schema is up to date.';

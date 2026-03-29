@@ -45,6 +45,18 @@ export const phaseConfigs = pgTable("phase_configs", {
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+export const phaseDeliverableTiles = pgTable("phase_deliverable_tiles", {
+  id: serial("id").primaryKey(),
+  phaseId: text("phase_id").notNull(),
+  subPhase: text("sub_phase").notNull(),
+  label: text("label").notNull(),
+  promptText: text("prompt_text").notNull(),
+  optional: boolean("optional").notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 export const documents = pgTable("documents", {
   id: serial("id").primaryKey(),
   conversationId: integer("conversation_id").references(() => conversations.id, { onDelete: "cascade" }),
@@ -89,10 +101,18 @@ export const insertDocumentSchema = createInsertSchema(documents).omit({
   createdAt: true,
 });
 
+export const insertPhaseDeliverableTileSchema = createInsertSchema(phaseDeliverableTiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type PhaseConfig = typeof phaseConfigs.$inferSelect;
 export type InsertPhaseConfig = z.infer<typeof insertPhaseConfigSchema>;
 export type Document = typeof documents.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+export type PhaseDeliverableTile = typeof phaseDeliverableTiles.$inferSelect;
+export type InsertPhaseDeliverableTile = z.infer<typeof insertPhaseDeliverableTileSchema>;
 
 export const sendMessageSchema = z.object({
   content: z.string().min(1),

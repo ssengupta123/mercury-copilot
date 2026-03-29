@@ -3,8 +3,8 @@ import type {
   IStorage
 } from "./storage";
 import type {
-  Conversation, Message, CopilotBot, PhaseConfig, Document,
-  InsertConversation, InsertMessage, InsertCopilotBot, InsertPhaseConfig, InsertDocument
+  Conversation, Message, CopilotBot, PhaseConfig, Document, PhaseDeliverableTile,
+  InsertConversation, InsertMessage, InsertCopilotBot, InsertPhaseConfig, InsertDocument, InsertPhaseDeliverableTile
 } from "@shared/schema";
 
 export class MssqlStorage implements IStorage {
@@ -283,6 +283,79 @@ export class MssqlStorage implements IStorage {
       .input("id", sql.Int, id)
       .input("conversationId", sql.Int, conversationId)
       .query("UPDATE documents SET conversation_id = @conversationId WHERE id = @id");
+  }
+
+  async getDeliverableTilesByPhase(phaseId: string): Promise<PhaseDeliverableTile[]> {
+    const pool = await getPool();
+    const result = await pool.request()
+      .input("phaseId", sql.NVarChar, phaseId)
+      .query("SELECT * FROM phase_deliverable_tiles WHERE phase_id = @phaseId ORDER BY sort_order ASC");
+    return result.recordset.map(r => this.mapDeliverableTile(r)!);
+  }
+
+  async getAllDeliverableTiles(): Promise<PhaseDeliverableTile[]> {
+    const pool = await getPool();
+    const result = await pool.request()
+      .query("SELECT * FROM phase_deliverable_tiles ORDER BY phase_id ASC, sort_order ASC");
+    return result.recordset.map(r => this.mapDeliverableTile(r)!);
+  }
+
+  async createDeliverableTile(data: InsertPhaseDeliverableTile): Promise<PhaseDeliverableTile> {
+    const pool = await getPool();
+    const result = await pool.request()
+      .input("phaseId", sql.NVarChar, data.phaseId)
+      .input("subPhase", sql.NVarChar, data.subPhase)
+      .input("label", sql.NVarChar, data.label)
+      .input("promptText", sql.NVarChar(sql.MAX), data.promptText)
+      .input("optional", sql.Bit, data.optional || false)
+      .input("sortOrder", sql.Int, data.sortOrder || 0)
+      .query(`
+        INSERT INTO phase_deliverable_tiles (phase_id, sub_phase, label, prompt_text, optional, sort_order, created_at, updated_at)
+        OUTPUT INSERTED.*
+        VALUES (@phaseId, @subPhase, @label, @promptText, @optional, @sortOrder, GETUTCDATE(), GETUTCDATE())
+      `);
+    return this.mapDeliverableTile(result.recordset[0])!;
+  }
+
+  async updateDeliverableTile(id: number, data: Partial<InsertPhaseDeliverableTile>): Promise<PhaseDeliverableTile | undefined> {
+    const pool = await getPool();
+    const setClauses: string[] = ["updated_at = GETUTCDATE()"];
+    const request = pool.request().input("id", sql.Int, id);
+
+    if (data.phaseId !== undefined) { setClauses.push("phase_id = @phaseId"); request.input("phaseId", sql.NVarChar, data.phaseId); }
+    if (data.subPhase !== undefined) { setClauses.push("sub_phase = @subPhase"); request.input("subPhase", sql.NVarChar, data.subPhase); }
+    if (data.label !== undefined) { setClauses.push("label = @label"); request.input("label", sql.NVarChar, data.label); }
+    if (data.promptText !== undefined) { setClauses.push("prompt_text = @promptText"); request.input("promptText", sql.NVarChar(sql.MAX), data.promptText); }
+    if (data.optional !== undefined) { setClauses.push("optional = @optional"); request.input("optional", sql.Bit, data.optional); }
+    if (data.sortOrder !== undefined) { setClauses.push("sort_order = @sortOrder"); request.input("sortOrder", sql.Int, data.sortOrder); }
+
+    const result = await request.query(`
+      UPDATE phase_deliverable_tiles SET ${setClauses.join(", ")}
+      OUTPUT INSERTED.*
+      WHERE id = @id
+    `);
+    return this.mapDeliverableTile(result.recordset[0]);
+  }
+
+  async deleteDeliverableTile(id: number): Promise<void> {
+    const pool = await getPool();
+    await pool.request().input("id", sql.Int, id)
+      .query("DELETE FROM phase_deliverable_tiles WHERE id = @id");
+  }
+
+  private mapDeliverableTile(row: any): PhaseDeliverableTile | undefined {
+    if (!row) return undefined;
+    return {
+      id: row.id,
+      phaseId: row.phase_id,
+      subPhase: row.sub_phase,
+      label: row.label,
+      promptText: row.prompt_text,
+      optional: !!row.optional,
+      sortOrder: row.sort_order,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
   }
 
   private mapConversation(row: any): Conversation | undefined {

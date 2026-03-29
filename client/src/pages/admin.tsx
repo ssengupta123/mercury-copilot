@@ -190,6 +190,12 @@ export default function Admin() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Link href="/admin/deliverables">
+              <Button variant="outline" size="sm" className="gap-2" data-testid="button-deliverable-config">
+                <Settings className="w-4 h-4" />
+                Deliverable Tiles
+              </Button>
+            </Link>
             <Link href="/admin/phases">
               <Button variant="outline" size="sm" className="gap-2" data-testid="button-phase-config">
                 <Settings className="w-4 h-4" />

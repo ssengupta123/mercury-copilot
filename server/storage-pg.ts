@@ -1,9 +1,9 @@
 import { getDb } from "./db";
 import {
-  conversations, messages, copilotBots, phaseConfigs, documents,
+  conversations, messages, copilotBots, phaseConfigs, documents, phaseDeliverableTiles,
   type Conversation, type Message, type InsertConversation, type InsertMessage,
   type CopilotBot, type InsertCopilotBot, type PhaseConfig, type InsertPhaseConfig,
-  type Document, type InsertDocument
+  type Document, type InsertDocument, type PhaseDeliverableTile, type InsertPhaseDeliverableTile
 } from "@shared/schema";
 import { eq, desc, asc, and } from "drizzle-orm";
 import type { IStorage } from "./storage";
@@ -151,5 +151,36 @@ export class DatabaseStorage implements IStorage {
   async linkDocumentToConversation(id: number, conversationId: number): Promise<void> {
     const db = await getDb();
     await db.update(documents).set({ conversationId }).where(eq(documents.id, id));
+  }
+
+  async getDeliverableTilesByPhase(phaseId: string): Promise<PhaseDeliverableTile[]> {
+    const db = await getDb();
+    return db.select().from(phaseDeliverableTiles).where(eq(phaseDeliverableTiles.phaseId, phaseId)).orderBy(asc(phaseDeliverableTiles.sortOrder));
+  }
+
+  async getAllDeliverableTiles(): Promise<PhaseDeliverableTile[]> {
+    const db = await getDb();
+    return db.select().from(phaseDeliverableTiles).orderBy(asc(phaseDeliverableTiles.phaseId), asc(phaseDeliverableTiles.sortOrder));
+  }
+
+  async createDeliverableTile(data: InsertPhaseDeliverableTile): Promise<PhaseDeliverableTile> {
+    const db = await getDb();
+    const [tile] = await db.insert(phaseDeliverableTiles).values(data).returning();
+    return tile;
+  }
+
+  async updateDeliverableTile(id: number, data: Partial<InsertPhaseDeliverableTile>): Promise<PhaseDeliverableTile | undefined> {
+    const db = await getDb();
+    const [tile] = await db
+      .update(phaseDeliverableTiles)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(phaseDeliverableTiles.id, id))
+      .returning();
+    return tile;
+  }
+
+  async deleteDeliverableTile(id: number): Promise<void> {
+    const db = await getDb();
+    await db.delete(phaseDeliverableTiles).where(eq(phaseDeliverableTiles.id, id));
   }
 }

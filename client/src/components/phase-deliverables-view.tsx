@@ -6,6 +6,16 @@ import { PHASE_DELIVERABLES } from "@/lib/phase-deliverables";
 import { FileText } from "lucide-react";
 import type { Agent } from "@/lib/types";
 
+interface DeliverableTile {
+  id: number;
+  phaseId: string;
+  subPhase: string;
+  label: string;
+  promptText: string;
+  optional: boolean;
+  sortOrder: number;
+}
+
 interface PhaseDeliverablesViewProps {
   phaseId: string;
   onDeliverableClick: (text: string) => void;
@@ -16,8 +26,27 @@ export function PhaseDeliverablesView({ phaseId, onDeliverableClick }: PhaseDeli
     queryKey: ["/api/agents"],
   });
 
+  const { data: dbTiles = [] } = useQuery<DeliverableTile[]>({
+    queryKey: ["/api/deliverable-tiles", phaseId],
+  });
+
   const agent = agents.find(a => a.id === phaseId);
-  const groups = PHASE_DELIVERABLES[phaseId] || [];
+
+  const groups: { subPhase: string; items: { label: string; text: string; optional?: boolean }[] }[] = [];
+  if (dbTiles.length > 0) {
+    const groupMap = new Map<string, { label: string; text: string; optional?: boolean }[]>();
+    for (const tile of dbTiles) {
+      if (!groupMap.has(tile.subPhase)) groupMap.set(tile.subPhase, []);
+      groupMap.get(tile.subPhase)!.push({ label: tile.label, text: tile.promptText, optional: tile.optional });
+    }
+    for (const [subPhase, items] of groupMap) {
+      groups.push({ subPhase, items });
+    }
+  } else {
+    const fallback = PHASE_DELIVERABLES[phaseId] || [];
+    groups.push(...fallback);
+  }
+
   const totalItems = groups.reduce((sum, g) => sum + g.items.length, 0);
 
   if (!agent) return null;

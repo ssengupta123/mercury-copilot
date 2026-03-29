@@ -364,6 +364,94 @@ export async function registerRoutes(
     }
   });
 
+  app.get("/api/admin/deliverable-tiles", async (_req, res) => {
+    try {
+      const tiles = await storage.getAllDeliverableTiles();
+      res.json(tiles);
+    } catch (error) {
+      console.error("Error fetching deliverable tiles:", error);
+      res.status(500).json({ error: "Failed to fetch deliverable tiles" });
+    }
+  });
+
+  app.get("/api/deliverable-tiles/:phaseId", async (req, res) => {
+    try {
+      const tiles = await storage.getDeliverableTilesByPhase(req.params.phaseId);
+      res.json(tiles);
+    } catch (error) {
+      console.error("Error fetching deliverable tiles:", error);
+      res.status(500).json({ error: "Failed to fetch deliverable tiles" });
+    }
+  });
+
+  app.post("/api/admin/deliverable-tiles", async (req, res) => {
+    try {
+      const { phaseId, subPhase, label, promptText, optional, sortOrder } = req.body;
+      if (!phaseId || !subPhase || !label || !promptText) {
+        return res.status(400).json({ error: "phaseId, subPhase, label, and promptText are required" });
+      }
+      const tile = await storage.createDeliverableTile({
+        phaseId, subPhase, label, promptText,
+        optional: optional || false,
+        sortOrder: sortOrder || 0,
+      });
+      res.status(201).json(tile);
+    } catch (error) {
+      console.error("Error creating deliverable tile:", error);
+      res.status(500).json({ error: "Failed to create deliverable tile" });
+    }
+  });
+
+  app.put("/api/admin/deliverable-tiles/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const tile = await storage.updateDeliverableTile(id, req.body);
+      if (!tile) return res.status(404).json({ error: "Tile not found" });
+      res.json(tile);
+    } catch (error) {
+      console.error("Error updating deliverable tile:", error);
+      res.status(500).json({ error: "Failed to update deliverable tile" });
+    }
+  });
+
+  app.delete("/api/admin/deliverable-tiles/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteDeliverableTile(id);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting deliverable tile:", error);
+      res.status(500).json({ error: "Failed to delete deliverable tile" });
+    }
+  });
+
+  app.post("/api/admin/deliverable-tiles/seed", async (_req, res) => {
+    try {
+      const { PHASE_DELIVERABLES } = await import("../client/src/lib/phase-deliverables");
+      let count = 0;
+      for (const [phaseId, groups] of Object.entries(PHASE_DELIVERABLES)) {
+        let order = 0;
+        for (const group of groups) {
+          for (const item of group.items) {
+            await storage.createDeliverableTile({
+              phaseId,
+              subPhase: group.subPhase,
+              label: item.label,
+              promptText: item.text,
+              optional: item.optional || false,
+              sortOrder: order++,
+            });
+            count++;
+          }
+        }
+      }
+      res.json({ seeded: count });
+    } catch (error) {
+      console.error("Error seeding deliverable tiles:", error);
+      res.status(500).json({ error: "Failed to seed deliverable tiles" });
+    }
+  });
+
   app.post("/api/upload", upload.single("file"), async (req, res) => {
     try {
       if (!req.file) return res.status(400).json({ error: "No file uploaded" });
