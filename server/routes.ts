@@ -88,6 +88,7 @@ export async function registerRoutes(
     try {
       const conv = await storage.createConversation({
         title: req.body.title || "New Conversation",
+        activeAgent: req.body.activeAgent || null,
       });
       res.status(201).json(conv);
     } catch (error) {

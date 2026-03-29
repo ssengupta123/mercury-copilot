@@ -13,9 +13,7 @@ export async function routeMessage(
   conversationHistory: { role: string; content: string; agentId?: string | null }[],
   currentAgent?: string | null
 ): Promise<RoutingResult> {
-  const keywordMatch = getAgentByKeyword(userMessage);
-
-  if (currentAgent && !keywordMatch) {
+  if (currentAgent) {
     const agent = getAgentById(currentAgent) || MERCURY_AGENTS[0];
     return {
       agentId: agent.id,
@@ -26,6 +24,7 @@ export async function routeMessage(
     };
   }
 
+  const keywordMatch = getAgentByKeyword(userMessage);
   const matched = keywordMatch || MERCURY_AGENTS[0];
   return {
     agentId: matched.id,

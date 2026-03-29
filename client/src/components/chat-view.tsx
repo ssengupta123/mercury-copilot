@@ -62,7 +62,7 @@ export function ChatView({ conversationId, selectedPhase, onConversationCreated 
         const res = await fetch("/api/conversations", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: content.substring(0, 50) }),
+          body: JSON.stringify({ title: content.substring(0, 50), activeAgent: selectedPhase || undefined }),
         });
         const newConv = await res.json();
         targetConvId = newConv.id;
